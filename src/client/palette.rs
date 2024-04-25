@@ -1,4 +1,4 @@
-use plotters::style::{RGBAColor};
+use plotters::style::RGBAColor;
 
 pub struct JetPalette {
     pub(crate) min: f64,
@@ -44,18 +44,18 @@ impl JetPalette {
     }
     pub fn get_color_rgb(&self, data: f64) -> RGB {
         if self.min.is_nan() || self.max.is_nan() {
-            RGB(0,0,0)
+            RGB(0, 0, 0)
             // Vec::new_fill(255, data.len())
         } else if self.max - self.min == 0.0 {
             if data.is_nan() {
-                RGB(0,0,0)
+                RGB(0, 0, 0)
             } else {
-                self.get_color_rgb_from_norm_value(0.5) 
+                self.get_color_rgb_from_norm_value(0.5)
             }
         } else {
             let diff = self.max - self.min;
             if data.is_nan() {
-                RGB(0,0,0)
+                RGB(0, 0, 0)
             } else {
                 let mut norm = (data - self.min) / diff;
                 if norm > 1.0 {
@@ -63,11 +63,10 @@ impl JetPalette {
                 } else if norm < 0.0 {
                     norm = 0.0;
                 }
-                self.get_color_rgb_from_norm_value(norm) 
+                self.get_color_rgb_from_norm_value(norm)
             }
         }
     }
- 
 
     fn get_color_rgb_from_norm_value(&self, value: f64) -> RGB {
         let a: f64;
@@ -119,8 +118,6 @@ impl RGB {
     }
 
     pub fn to_plotters(&self) -> RGBAColor {
-        RGBAColor(self.0,self.1,self.2, 1.0)
+        RGBAColor(self.0, self.1, self.2, 1.0)
     }
-
-
 }
