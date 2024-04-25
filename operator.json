@@ -1,0 +1,41 @@
+{
+  "name": "Gates overview",
+  "description": "Plot gates overview.",
+  "tags": [
+
+  ],
+  "api": {
+    "type": "grpc",
+    "version": "0.0.1"
+  },
+  "authors": [
+    "tercen"
+  ],
+  "urls": [
+    "https://github.com/tercen/gates_plotters_operator"
+  ],
+  "properties": [],
+  "operatorSpec" : {
+    "kind": "OperatorSpec",
+    "ontologyUri": "https://tercen.com/_ontology/tercen",
+    "ontologyVersion": "0.0.1",
+    "inputSpecs": [
+      {
+        "kind": "CrosstabSpec",
+        "metaFactors": [
+          {
+            "kind": "MetaFactor",
+            "name": "sample",
+            "type": "",
+            "description": "One or more factors defining the sample.",
+            "ontologyMapping": "sample",
+            "crosstabMapping": "column",
+            "cardinality": "",
+            "factors": []
+          }
+        ]
+      }
+    ],
+    "outputSpecs": []
+  }
+}
