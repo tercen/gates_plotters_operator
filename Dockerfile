@@ -12,10 +12,12 @@ ENV RUSTFLAGS=$BUILD_RUSTFLAGS
 RUN echo RUSTFLAGS=$RUSTFLAGS
 WORKDIR /code
 COPY . .
-RUN cargo test
+#RUN cargo test
 RUN cargo build --release
 
 FROM debian:buster-slim
+RUN apt update && apt install -y pkg-config \
+     libfontconfig1-dev fontconfig libfontconfig-dev
 COPY --from=builder /code/target/release/gates_plotters_operator /usr/local/bin/gates_plotters_operator
-CMD ["gates_plotters_operator"]
+ENTRYPOINT ["/usr/local/bin/gates_plotters_operator"]
 

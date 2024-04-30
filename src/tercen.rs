@@ -64,6 +64,14 @@ pub struct RespDownload {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReqUploadTable {
+    #[prost(message, optional, tag = "1")]
+    pub file: ::core::option::Option<EFileDocument>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub bytes: ::prost::alloc::vec::Vec<u8>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReqStreamTable {
     #[prost(string, tag = "1")]
     pub table_id: ::prost::alloc::string::String,
@@ -75,6 +83,12 @@ pub struct ReqStreamTable {
     pub limit: i64,
     #[prost(string, tag = "5")]
     pub binary_format: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RespUploadTable {
+    #[prost(message, optional, tag = "1")]
+    pub result: ::core::option::Option<ESchema>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -4879,8 +4893,8 @@ pub struct XyAxisList {
 /// Generated client implementations.
 pub mod file_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct FileServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -4913,8 +4927,9 @@ pub mod file_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             FileServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -4953,102 +4968,124 @@ pub mod file_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::EFileDocument>,
         ) -> std::result::Result<tonic::Response<super::EFileDocument>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FileService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FileService/create",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FileService", "create"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FileService", "create"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
         ) -> std::result::Result<tonic::Response<super::EFileDocument>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/tercen.FileService/get");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FileService", "get"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FileService", "get"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn update(
             &mut self,
             request: impl tonic::IntoRequest<super::EFileDocument>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FileService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FileService/update",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FileService", "update"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FileService", "update"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn delete(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FileService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FileService/delete",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FileService", "delete"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FileService", "delete"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn upload(
             &mut self,
             request: impl tonic::IntoStreamingRequest<Message = super::ReqUpload>,
         ) -> std::result::Result<tonic::Response<super::RespUpload>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FileService/upload");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FileService/upload",
+            );
             let mut req = request.into_streaming_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FileService", "upload"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FileService", "upload"));
             self.inner.client_streaming(req, path, codec).await
         }
         pub async fn append(
             &mut self,
             request: impl tonic::IntoStreamingRequest<Message = super::ReqAppend>,
         ) -> std::result::Result<tonic::Response<super::RespAppend>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FileService/append");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FileService/append",
+            );
             let mut req = request.into_streaming_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FileService", "append"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FileService", "append"));
             self.inner.client_streaming(req, path, codec).await
         }
         pub async fn download(
@@ -5058,14 +5095,19 @@ pub mod file_service_client {
             tonic::Response<tonic::codec::Streaming<super::RespDownload>>,
             tonic::Status,
         > {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FileService/download");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FileService/download",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.FileService", "download"));
@@ -5076,8 +5118,8 @@ pub mod file_service_client {
 /// Generated client implementations.
 pub mod folder_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct FolderServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5110,8 +5152,9 @@ pub mod folder_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             FolderServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5149,15 +5192,23 @@ pub mod folder_service_client {
         pub async fn create(
             &mut self,
             request: impl tonic::IntoRequest<super::EFolderDocument>,
-        ) -> std::result::Result<tonic::Response<super::EFolderDocument>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+        ) -> std::result::Result<
+            tonic::Response<super::EFolderDocument>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FolderService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FolderService/create",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.FolderService", "create"));
@@ -5166,32 +5217,42 @@ pub mod folder_service_client {
         pub async fn get(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
-        ) -> std::result::Result<tonic::Response<super::EFolderDocument>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+        ) -> std::result::Result<
+            tonic::Response<super::EFolderDocument>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/tercen.FolderService/get");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.FolderService", "get"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.FolderService", "get"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn update(
             &mut self,
             request: impl tonic::IntoRequest<super::EFolderDocument>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FolderService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FolderService/update",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.FolderService", "update"));
@@ -5201,14 +5262,19 @@ pub mod folder_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.FolderService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.FolderService/delete",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.FolderService", "delete"));
@@ -5219,8 +5285,8 @@ pub mod folder_service_client {
 /// Generated client implementations.
 pub mod table_schema_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct TableSchemaServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5253,8 +5319,9 @@ pub mod table_schema_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             TableSchemaServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5293,14 +5360,19 @@ pub mod table_schema_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ESchema>,
         ) -> std::result::Result<tonic::Response<super::ESchema>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TableSchemaService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TableSchemaService/create",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TableSchemaService", "create"));
@@ -5310,14 +5382,19 @@ pub mod table_schema_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
         ) -> std::result::Result<tonic::Response<super::ESchema>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TableSchemaService/get");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TableSchemaService/get",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TableSchemaService", "get"));
@@ -5327,14 +5404,19 @@ pub mod table_schema_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ESchema>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TableSchemaService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TableSchemaService/update",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TableSchemaService", "update"));
@@ -5344,18 +5426,48 @@ pub mod table_schema_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TableSchemaService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TableSchemaService/delete",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TableSchemaService", "delete"));
             self.inner.unary(req, path, codec).await
+        }
+        pub async fn upload_table(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<Message = super::ReqUploadTable>,
+        ) -> std::result::Result<
+            tonic::Response<super::RespUploadTable>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TableSchemaService/uploadTable",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("tercen.TableSchemaService", "uploadTable"));
+            self.inner.client_streaming(req, path, codec).await
         }
         pub async fn stream_table(
             &mut self,
@@ -5364,15 +5476,19 @@ pub mod table_schema_service_client {
             tonic::Response<tonic::codec::Streaming<super::RespStreamTable>>,
             tonic::Status,
         > {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/tercen.TableSchemaService/streamTable");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TableSchemaService/streamTable",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TableSchemaService", "streamTable"));
@@ -5383,8 +5499,8 @@ pub mod table_schema_service_client {
 /// Generated client implementations.
 pub mod task_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct TaskServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5417,8 +5533,9 @@ pub mod task_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             TaskServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5457,82 +5574,101 @@ pub mod task_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ETask>,
         ) -> std::result::Result<tonic::Response<super::ETask>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TaskService/create",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TaskService", "create"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TaskService", "create"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
         ) -> std::result::Result<tonic::Response<super::ETask>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/get");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TaskService", "get"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TaskService", "get"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn update(
             &mut self,
             request: impl tonic::IntoRequest<super::ETask>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TaskService/update",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TaskService", "update"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TaskService", "update"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn delete(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TaskService/delete",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TaskService", "delete"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TaskService", "delete"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn run_task(
             &mut self,
             request: impl tonic::IntoRequest<super::ReqRunTask>,
         ) -> std::result::Result<tonic::Response<super::RespRunTask>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/runTask");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TaskService/runTask",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TaskService", "runTask"));
@@ -5542,14 +5678,19 @@ pub mod task_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ReqCancelTask>,
         ) -> std::result::Result<tonic::Response<super::RespCancelTask>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/cancelTask");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TaskService/cancelTask",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TaskService", "cancelTask"));
@@ -5559,14 +5700,19 @@ pub mod task_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ReqWaitDone>,
         ) -> std::result::Result<tonic::Response<super::RespWaitDone>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TaskService/waitDone");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TaskService/waitDone",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.TaskService", "waitDone"));
@@ -5577,8 +5723,8 @@ pub mod task_service_client {
 /// Generated client implementations.
 pub mod workflow_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct WorkflowServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5611,8 +5757,9 @@ pub mod workflow_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             WorkflowServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5651,14 +5798,19 @@ pub mod workflow_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::EWorkflow>,
         ) -> std::result::Result<tonic::Response<super::EWorkflow>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.WorkflowService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.WorkflowService/create",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.WorkflowService", "create"));
@@ -5668,14 +5820,19 @@ pub mod workflow_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
         ) -> std::result::Result<tonic::Response<super::EWorkflow>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.WorkflowService/get");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.WorkflowService/get",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.WorkflowService", "get"));
@@ -5685,14 +5842,19 @@ pub mod workflow_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::EWorkflow>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.WorkflowService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.WorkflowService/update",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.WorkflowService", "update"));
@@ -5702,14 +5864,19 @@ pub mod workflow_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.WorkflowService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.WorkflowService/delete",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.WorkflowService", "delete"));
@@ -5718,15 +5885,23 @@ pub mod workflow_service_client {
         pub async fn get_cube_query(
             &mut self,
             request: impl tonic::IntoRequest<super::ReqGetCubeQuery>,
-        ) -> std::result::Result<tonic::Response<super::RespGetCubeQuery>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+        ) -> std::result::Result<
+            tonic::Response<super::RespGetCubeQuery>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.WorkflowService/getCubeQuery");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.WorkflowService/getCubeQuery",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.WorkflowService", "getCubeQuery"));
@@ -5737,8 +5912,8 @@ pub mod workflow_service_client {
 /// Generated client implementations.
 pub mod user_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct UserServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5771,8 +5946,9 @@ pub mod user_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             UserServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5811,82 +5987,101 @@ pub mod user_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::EUser>,
         ) -> std::result::Result<tonic::Response<super::EUser>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.UserService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.UserService/create",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.UserService", "create"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.UserService", "create"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
         ) -> std::result::Result<tonic::Response<super::EUser>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/tercen.UserService/get");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.UserService", "get"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.UserService", "get"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn update(
             &mut self,
             request: impl tonic::IntoRequest<super::EUser>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.UserService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.UserService/update",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.UserService", "update"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.UserService", "update"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn delete(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.UserService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.UserService/delete",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.UserService", "delete"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.UserService", "delete"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn connect(
             &mut self,
             request: impl tonic::IntoRequest<super::ReqConnect>,
         ) -> std::result::Result<tonic::Response<super::RespConnect>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.UserService/connect");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.UserService/connect",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.UserService", "connect"));
@@ -5895,16 +6090,23 @@ pub mod user_service_client {
         pub async fn get_server_version(
             &mut self,
             request: impl tonic::IntoRequest<super::ReqGetServerVersion>,
-        ) -> std::result::Result<tonic::Response<super::RespGetServerVersion>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+        ) -> std::result::Result<
+            tonic::Response<super::RespGetServerVersion>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.UserService/getServerVersion");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.UserService/getServerVersion",
+            );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.UserService", "getServerVersion"));
@@ -5915,8 +6117,8 @@ pub mod user_service_client {
 /// Generated client implementations.
 pub mod team_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
     pub struct TeamServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5949,8 +6151,9 @@ pub mod team_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
         {
             TeamServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5989,68 +6192,82 @@ pub mod team_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ETeam>,
         ) -> std::result::Result<tonic::Response<super::ETeam>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TeamService/create");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TeamService/create",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TeamService", "create"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TeamService", "create"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRequest>,
         ) -> std::result::Result<tonic::Response<super::ETeam>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/tercen.TeamService/get");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TeamService", "get"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TeamService", "get"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn update(
             &mut self,
             request: impl tonic::IntoRequest<super::ETeam>,
         ) -> std::result::Result<tonic::Response<super::ResponseUpdate>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TeamService/update");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TeamService/update",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TeamService", "update"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TeamService", "update"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn delete(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteRequest>,
         ) -> std::result::Result<tonic::Response<super::ResponseDelete>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/tercen.TeamService/delete");
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.TeamService/delete",
+            );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("tercen.TeamService", "delete"));
+            req.extensions_mut().insert(GrpcMethod::new("tercen.TeamService", "delete"));
             self.inner.unary(req, path, codec).await
         }
     }

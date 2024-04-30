@@ -47,12 +47,19 @@ service FolderService {
   rpc update(EFolderDocument) returns (ResponseUpdate);
   rpc delete(DeleteRequest) returns (ResponseDelete);
 }
+message ReqUploadTable {
+  EFileDocument file = 1;
+  bytes bytes = 2;
+}
 message ReqStreamTable {
   string tableId = 1;
   repeated string cnames = 2;
   int64 offset = 3;
   int64 limit = 4;
   string binaryFormat = 5;
+}
+message RespUploadTable {
+  ESchema result = 1;
 }
 message RespStreamTable {
   bytes result = 1;
@@ -62,6 +69,7 @@ service TableSchemaService {
   rpc get(GetRequest) returns (ESchema);
   rpc update(ESchema) returns (ResponseUpdate);
   rpc delete(DeleteRequest) returns (ResponseDelete);
+  rpc uploadTable(stream ReqUploadTable ) returns ( RespUploadTable );
   rpc streamTable( ReqStreamTable ) returns (stream RespStreamTable );
 }
 message ReqRunTask {
