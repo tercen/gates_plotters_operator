@@ -36,6 +36,8 @@ mod tercen;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Err(Box::new(TercenError::new("dummy")))?;
+
     let tercen_ctx = TercenContext::new().await?;
 
     let cube_query = tercen_ctx.get_cube_query().await?;
@@ -121,7 +123,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         0,
         Series::new(".ci.global", (0..n_samples).collect::<Vec<_>>()),
     )?;
-    println!("global_column_df {:?}", global_column_df);
+    // println!("global_column_df {:?}", global_column_df);
 
     let sample_factor_names: Vec<_> = sample_meta_factor.factors.iter()
         .map(|f| f.name.to_string())

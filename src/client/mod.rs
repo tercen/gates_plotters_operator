@@ -255,32 +255,7 @@ impl TercenContext {
         }
     }
 
-    pub async fn get_cube_queries_from_task(&self) -> Result<Vec<CubeQuery>, Box<dyn Error>> {
-        if TercenArgs::try_parse().is_ok() {
-            // let task_ids = self.get_cube_queries_from_task_ids().await?;
-            // let mut result = vec![];
-            // for task_id in task_ids {
-            //     result.push(self.get_cube_query_from_task(&task_id).await?);
-            // }
-            // Ok(result)
-
-            Ok(vec![
-                self.get_cube_query().await?,
-                self.get_cube_query().await?,
-                self.get_cube_query().await?,
-                self.get_cube_query().await?,
-            ])
-        } else {
-            Ok(vec![
-                self.get_cube_query().await?,
-                self.get_cube_query().await?,
-                self.get_cube_query().await?,
-                self.get_cube_query().await?,
-            ])
-        }
-    }
-
-    pub async fn get_task_env(&self)  -> Result<Vec<Pair>, Box<dyn Error>> {
+    pub async fn get_task_env(&self) -> Result<Vec<Pair>, Box<dyn Error>> {
         match TercenArgs::try_parse() {
             Ok(args) => {
                 let response = self
@@ -307,7 +282,6 @@ impl TercenContext {
                 Ok(vec![])
             }
         }
-
     }
 
     pub async fn get_cube_queries_from_task_ids(&self) -> Result<Vec<String>, Box<dyn Error>> {
@@ -359,11 +333,11 @@ impl TercenContext {
     }
 
     fn get_workflow_id(&self) -> Result<String, Box<dyn Error>> {
-        Ok("ac401b828c61c1d7ee60a704f298cd6e".to_string())
+        Ok("9cbb3d9212ecae4ed01564f4e80fa385".to_string())
     }
 
     fn get_step_id(&self) -> Result<String, Box<dyn Error>> {
-        Ok("1347b4b0-3cdf-4d08-b908-5fe41caa44e2".to_string())
+        Ok("a79a5429-6924-42ac-9701-082ee4eb9470".to_string())
     }
 
     pub async fn get_cube_query(&self) -> Result<CubeQuery, Box<dyn Error>> {
@@ -495,18 +469,31 @@ impl TercenContext {
             .await?
             .into_inner();
 
-        let mut bytes = vec![];
+        let mut result = None;
 
         while let Some(evt) = stream.next().await {
-            bytes.extend(evt?.result);
+            let c = Cursor::new(evt?.result);
+            let reader = IpcStreamReader::new(c);
+            let data_frame = reader
+                .finish()
+                .map_err(|e| Box::new(TercenError::new(&e.to_string())) as Box<dyn Error>)?;
+
+            if result.is_none() {
+                result = Some(data_frame);
+            } else {
+                result
+                    .as_mut()
+                    .unwrap()
+                    .extend(&data_frame)
+                    .map_err(|e| Box::new(TercenError::new(&e.to_string())) as Box<dyn Error>)?;
+            }
         }
 
-        let c = Cursor::new(bytes);
-        let reader = IpcStreamReader::new(c);
-
-        reader
-            .finish()
-            .map_err(|e| Box::new(TercenError::new(&e.to_string())) as Box<dyn Error>)
+        if result.is_none() {
+            Err((Box::new(TercenError::new("select_data_frame_from_id -- empty result !!")) as Box<dyn Error>))
+        } else {
+            Ok(result.unwrap())
+        }
     }
 }
 
