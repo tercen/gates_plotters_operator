@@ -105,7 +105,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .ok_or_else(|| TercenError::new("Failed to get last last_pop_names."))?;
 
 
-    println!("task_ids {:?}", &task_ids);
+    // println!("task_ids {:?}", &task_ids);
 
     let mut cube_queries = vec![];
     for task_id in task_ids.iter() {
@@ -430,8 +430,8 @@ fn draw_cube_query(
     let ci = ci_df.column(".ci")?.i32()?.into_no_null_iter().collect::<Vec<_>>();
     let ci_global = ci_df.column(".ci.global")?.i32()?.into_no_null_iter().collect::<Vec<_>>();
 
-    println!("ci -- {:?}", &ci);
-    println!("ci_global -- {:?}", &ci_global);
+    // println!("ci -- {:?}", &ci);
+    // println!("ci_global -- {:?}", &ci_global);
 
     for qt_df in data_frames.into_iter() {
         let current_ci: i32 = qt_df
@@ -441,7 +441,7 @@ fn draw_cube_query(
             .next()
             .ok_or_else(|| TercenError::new("failed to get .ci"))?;
 
-        println!("current_ci -- {:?}", &current_ci);
+        // println!("current_ci -- {:?}", &current_ci);
 
         let (_, ci_global) = ci.iter()
             .zip(ci_global.iter())
