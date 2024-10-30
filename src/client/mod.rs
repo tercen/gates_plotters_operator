@@ -2,6 +2,7 @@ pub mod args;
 pub mod palette;
 pub mod quartiles;
 pub mod shapes;
+pub mod utils;
 
 use arrow::array::RecordBatch;
 use arrow::error::ArrowError;
@@ -20,13 +21,15 @@ use crate::tercen::table_schema_service_client::TableSchemaServiceClient;
 use crate::tercen::task_service_client::TaskServiceClient;
 use crate::tercen::user_service_client::UserServiceClient;
 use crate::tercen::workflow_service_client::WorkflowServiceClient;
-use crate::tercen::{e_schema, CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqGetCubeQuery, ReqStreamTable, TableSchema, e_workflow, RunComputationTask};
+use crate::tercen::{e_schema, CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqGetCubeQuery, ReqStreamTable, TableSchema, e_workflow, RunComputationTask, ETask};
 use tonic::codegen::tokio_stream::StreamExt;
 use tonic::codegen::InterceptedService;
 use tonic::metadata::{AsciiMetadataValue, MetadataValue};
 use tonic::service::Interceptor;
 use tonic::transport::{Channel, Uri};
 use tonic::{Request, Status};
+
+use crate::client::utils::*;
 
 #[derive(Debug)]
 pub struct TercenError {
@@ -205,120 +208,75 @@ impl TercenContext {
         &self,
         task_id: &str,
     ) -> Result<CubeQuery, Box<dyn Error>> {
-        let response = self
-            .factory
+        let task = self.factory
             .task_service()?
-            .get(GetRequest {
-                id: task_id.to_string(),
-            })
-            .await?;
+            .get(GetRequest { id: task_id.to_string() })
+            .await?
+            .into_inner();
 
-        let cube_query = response
-            .into_inner()
-            .object
-            .and_then(|object| match object {
-                Object::Runcomputationtask(task) => task.query,
-                Object::Cubequerytask(task) => task.query,
-                Object::Computationtask(task) => task.query,
-                _ => None,
-            })
-            .ok_or_else(|| TercenError::new("A cube query is required."))?;
+        let cube_query = task.get_cube_query()?;
 
-        Ok(cube_query)
+        Ok(cube_query.clone())
     }
 
-    pub async fn get_task(&self) -> Result<RunComputationTask, Box<dyn Error>> {
+    pub async fn get_task_from_id(
+        &self,
+        task_id: &str,
+    ) -> Result<ETask, Box<dyn Error>> {
+        let task = self.factory
+            .task_service()?
+            .get(GetRequest { id: task_id.to_string() })
+            .await?
+            .into_inner();
+        Ok(task)
+    }
+
+    pub async fn get_task(&self) -> Result<ETask, Box<dyn Error>> {
+        Ok(self.factory
+            .task_service()?
+            .get(GetRequest { id: self.get_task_id()? })
+            .await
+            .map(|res| res.into_inner())?)
+    }
+
+    fn get_task_id(&self) -> Result<String, Box<dyn Error>> {
         match TercenArgs::try_parse() {
             Ok(args) => {
-                let response = self
-                    .factory
-                    .task_service()?
-                    .get(GetRequest {
-                        id: args.taskId.clone(),
-                    })
-                    .await?;
-
-                let task = response
-                    .into_inner()
-                    .object
-                    .and_then(|object| match object {
-                        Object::Runcomputationtask(task) => Some(task),
-                        _ => None,
-                    })
-                    .ok_or_else(|| TercenError::new("Failed to get task."))?;
-
-                Ok(task)
+                Ok(args.taskId.clone())
             }
             Err(_) => {
-                Err(Box::new(TercenError::new("Failed to get task.")))
+                Ok("749cfa34aea141eb263d48554f0d2d59".to_string())
             }
         }
     }
 
     pub async fn get_task_env(&self) -> Result<Vec<Pair>, Box<dyn Error>> {
-        match TercenArgs::try_parse() {
-            Ok(args) => {
-                let response = self
-                    .factory
-                    .task_service()?
-                    .get(GetRequest {
-                        id: args.taskId.clone(),
-                    })
-                    .await?;
+        let task = self.get_task().await?;
+        let task_env = task
+            .get_env()
+            .map_err(|_| TercenError::new("A task environment is required."))?;
 
-                let task_env = response
-                    .into_inner()
-                    .object
-                    .and_then(|object| match object {
-                        Object::Runcomputationtask(task) => Some(task.environment),
-                        Object::Cubequerytask(task) => Some(task.environment),
-                        Object::Computationtask(task) => Some(task.environment),
-                        _ => None,
-                    })
-                    .ok_or_else(|| TercenError::new("A task environment is required."))?;
-                Ok(task_env)
-            }
-            Err(_) => {
-                Ok(vec![])
-            }
-        }
+        Ok(task_env.to_vec())
     }
 
     pub async fn get_cube_queries_from_task_ids(&self) -> Result<Vec<String>, Box<dyn Error>> {
         let ids = match TercenArgs::try_parse() {
             Ok(args) => {
-                let response = self
-                    .factory
+                let task = self.factory
                     .task_service()?
-                    .get(GetRequest {
-                        id: args.taskId.clone(),
-                    })
-                    .await?;
+                    .get(GetRequest { id: args.taskId.clone() })
+                    .await?
+                    .into_inner();
 
-                let task_env = response
-                    .into_inner()
-                    .object
-                    .and_then(|object| match object {
-                        Object::Runcomputationtask(task) => Some(task.environment),
-                        Object::Cubequerytask(task) => Some(task.environment),
-                        Object::Computationtask(task) => Some(task.environment),
-                        _ => None,
-                    })
-                    .ok_or_else(|| TercenError::new("A task environment is required."))?;
-
-                match task_env
+                task
+                    .get_env()?
                     .iter()
                     .find(|env| env.key.eq("tercen.gating.task.ids"))
-                {
-                    None => {
-                        vec![]
-                    }
-                    Some(env) => env
+                    .map_or(vec![], |env| env
                         .value
                         .split(",")
                         .map(|e| e.to_string())
-                        .collect::<Vec<_>>(),
-                }
+                        .collect::<Vec<_>>())
             }
             Err(_) => {
                 vec![]
@@ -341,35 +299,37 @@ impl TercenContext {
     }
 
     pub async fn get_cube_query(&self) -> Result<CubeQuery, Box<dyn Error>> {
-        match TercenArgs::try_parse() {
-            Ok(args) => Ok(self.get_cube_query_from_task(&args.taskId).await?),
-            Err(_) => {
-                // http://127.0.0.1:5400/test/w/ac401b828c61c1d7ee60a704f298cd6e/ds/1347b4b0-3cdf-4d08-b908-5fe41caa44e2
+        Ok(self.get_task().await?.get_cube_query()?.clone())
 
-                let workflow_id = self.get_workflow_id()?;
-                let step_id = self.get_step_id()?;
-
-                let response = self
-                    .factory
-                    .workflow_service()?
-                    .get_cube_query(ReqGetCubeQuery {
-                        workflow_id: workflow_id.clone(),
-                        step_id: step_id.clone(),
-                    })
-                    .await?;
-
-                let cube_query = response
-                    .into_inner()
-                    .result
-                    .ok_or_else(|| Box::new(TercenError::new("failed to get_cube_query")))?;
-
-                Ok(cube_query)
-            }
-        }
+        // match TercenArgs::try_parse() {
+        //     Ok(args) => Ok(self.get_cube_query_from_task(&args.taskId).await?),
+        //     Err(_) => {
+        //         // http://127.0.0.1:5400/test/w/ac401b828c61c1d7ee60a704f298cd6e/ds/1347b4b0-3cdf-4d08-b908-5fe41caa44e2
+        //
+        //         let workflow_id = self.get_workflow_id()?;
+        //         let step_id = self.get_step_id()?;
+        //
+        //         let response = self
+        //             .factory
+        //             .workflow_service()?
+        //             .get_cube_query(ReqGetCubeQuery {
+        //                 workflow_id: workflow_id.clone(),
+        //                 step_id: step_id.clone(),
+        //             })
+        //             .await?;
+        //
+        //         let cube_query = response
+        //             .into_inner()
+        //             .result
+        //             .ok_or_else(|| Box::new(TercenError::new("failed to get_cube_query")))?;
+        //
+        //         Ok(cube_query)
+        //     }
+        // }
     }
 
     pub async fn schema(&self) -> Result<ESchema, Box<dyn Error>> {
-        let cube_query = self.get_cube_query().await?;
+        let cube_query = self.get_task().await?.get_cube_query()?.clone();
         Ok(self.get_schema(&cube_query.qt_hash).await?)
     }
 
@@ -454,7 +414,7 @@ impl TercenContext {
         column_names: &Vec<String>,
     ) -> Result<DataFrame, Box<dyn Error>> {
         let schema = self.get_schema(&id).await?;
-        let n_rows = schema_n_rows(schema) as i64;
+        let n_rows = schema.get_n_rows()? as i64;
 
         let mut stream = self
             .factory
@@ -494,14 +454,5 @@ impl TercenContext {
         } else {
             Ok(result.unwrap())
         }
-    }
-}
-
-pub fn schema_n_rows(schema: ESchema) -> i32 {
-    match &schema.object.unwrap() {
-        e_schema::Object::Computedtableschema(schema) => schema.n_rows,
-        e_schema::Object::Cubequerytableschema(schema) => schema.n_rows,
-        e_schema::Object::Schema(schema) => schema.n_rows,
-        e_schema::Object::Tableschema(schema) => schema.n_rows,
     }
 }

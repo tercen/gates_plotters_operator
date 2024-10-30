@@ -2,7 +2,9 @@ use std::error::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use crate::client::TercenError;
+use crate::{PreProcess, PreProcessorCodec};
 
+#[derive(Clone)]
 pub enum Shape {
     Rectangle(RectangleShape),
     Quadrant(QuadrantShape),
@@ -49,46 +51,109 @@ impl Shape {
             }
         }
     }
+
+    pub(crate) fn encode<T: PreProcessorCodec>(&self, x_pre_processors: &T, y_pre_processors: &T) -> Self {
+        match self {
+            Shape::Rectangle(shape) => Shape::Rectangle(shape.encode(x_pre_processors, y_pre_processors)),
+            Shape::Quadrant(shape) => Shape::Quadrant(shape.encode(x_pre_processors, y_pre_processors)),
+            Shape::XRange(shape) => Shape::XRange(shape.encode(x_pre_processors, y_pre_processors)),
+            Shape::YRange(shape) => Shape::YRange(shape.encode(x_pre_processors, y_pre_processors)),
+            Shape::Polygon(shape) => Shape::Polygon(shape.encode(x_pre_processors, y_pre_processors)),
+            Shape::XHistogramRange(shape) => Shape::XHistogramRange(shape.encode(x_pre_processors, y_pre_processors)),
+        }
+    }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RectangleShape {
     kind: String,
     pub rectangle: Rectangle,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl RectangleShape {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, y_pre_process: &T) -> Self {
+        let mut result = self.clone();
+        result.rectangle = self.rectangle.encode(x_pre_process, y_pre_process);
+        result
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct QuadrantShape {
     kind: String,
     pub center: Point,
     pub quadrant: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl QuadrantShape {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, y_pre_process: &T) -> Self {
+        let mut result = self.clone();
+        result.center = self.center.encode(x_pre_process, y_pre_process);
+        result
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct XRangeShape {
     kind: String,
     pub range: Range,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl XRangeShape {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, _y_pre_process: &T) -> Self {
+        let mut result = self.clone();
+        result.range = self.range.encode(x_pre_process);
+        result
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct YRangeShape {
     kind: String,
     pub range: Range,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl YRangeShape {
+    fn encode<T: PreProcessorCodec>(&self, _x_pre_process: &T, y_pre_process: &T) -> Self {
+        let mut result = self.clone();
+        result.range = self.range.encode(y_pre_process);
+        result
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PolygonShape {
     kind: String,
     pub polygon: Vec<Point>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl PolygonShape {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, y_pre_process: &T) -> Self {
+        let mut result = self.clone();
+        result.polygon = self.polygon.iter()
+            .map(|p| p.encode(x_pre_process, y_pre_process))
+            .collect();
+        result
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct XHistogramRangeShape {
     kind: String,
     pub range: Range,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl XHistogramRangeShape {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, _y_pre_process: &T) -> Self {
+        let mut result = self.clone();
+        result.range = self.range.encode(x_pre_process);
+        result
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Rectangle {
     pub left: f64,
     pub top: f64,
@@ -96,20 +161,73 @@ pub struct Rectangle {
     pub height: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl Rectangle {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, y_pre_process: &T) -> Self {
+        // return self.decode(x_pre_process, y_pre_process);
+
+        let left = x_pre_process.encode(self.left);
+        let right = x_pre_process.encode(self.left + self.width);
+        let width = (right - left).abs();
+        let top = y_pre_process.encode(self.top);
+        let bottom = y_pre_process.encode(self.top + self.height);
+        let height = (top - bottom).abs();
+        Rectangle {
+            left,
+            top,
+            width,
+            height,
+        }
+    }
+
+    fn decode<T: PreProcessorCodec>(&self, x_pre_process: &T, y_pre_process: &T) -> Self {
+        let left = x_pre_process.decode(self.left);
+        let right = x_pre_process.decode(self.left + self.width);
+        let width = (right - left).abs();
+        let top = y_pre_process.decode(self.top);
+        let bottom = y_pre_process.decode(self.top + self.height);
+        let height = (top - bottom).abs();
+        Rectangle {
+            left,
+            top,
+            width,
+            height,
+        }
+
+    }
+
+    // left = enc(left)
+    // right = enc(
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
 }
+impl Point {
+    fn encode<T: PreProcessorCodec>(&self, x_pre_process: &T, y_pre_process: &T) -> Self {
+        Point {
+            x: x_pre_process.encode(self.x),
+            y: y_pre_process.encode(self.y),
+        }
+    }
+}
 
 
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Range {
     pub start: f64,
     pub end: f64,
 }
 
+impl Range {
+    fn encode<T: PreProcessorCodec>(&self, pre_process: &T) -> Self {
+        Range {
+            start: pre_process.encode(self.start),
+            end: pre_process.encode(self.end),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

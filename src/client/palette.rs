@@ -1,5 +1,7 @@
 use plotters::style::RGBAColor;
+use serde::{Deserialize, Serialize};
 
+#[derive(Clone)]
 pub struct JetPalette {
     pub(crate) min: f64,
     pub(crate) max: f64,

@@ -18,3 +18,6 @@ cargo build --release
 ```shell
 cargo fmt --all
 ```
+
+```shell
+run --package gates_plotters_operator --bin gates_plotters_operator -- --taskId e4c6293e21e71057806d192e43e53ebe```
