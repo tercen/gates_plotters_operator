@@ -245,7 +245,8 @@ impl TercenContext {
                 Ok(args.taskId.clone())
             }
             Err(_) => {
-                Ok("749cfa34aea141eb263d48554f859788".to_string())
+                Err(Box::new(TercenError::new("taskId is required")))
+                // Ok("749cfa34aea141eb263d48554f859788".to_string())
             }
         }
     }
