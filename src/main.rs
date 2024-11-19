@@ -50,17 +50,13 @@ mod tercen;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Err(Box::new(TercenError::new("dummy")))?;
 
     let tercen_ctx = TercenContext::new().await?;
 
     let cube_query = tercen_ctx.get_task().await?.get_cube_query()?.clone();
-    // println!("cube_query {:?}", &cube_query);
-    let sample_meta_factor = get_sample_meta_factor(cube_query)?;
-    // println!("sample_meta_factor {:?}", &sample_meta_factor);
+     let sample_meta_factor = get_sample_meta_factor(cube_query)?;
 
     let shape_tbl = get_shape_tbl(&tercen_ctx).await?;
-    // println!("shape_tbl {:?}", &shape_tbl);
 
     let mut shapes_by_index = HashMap::new();
     let shape_index = shape_tbl.column(".shape.index")?.i32()?.into_no_null_iter().collect::<Vec<_>>();
@@ -77,7 +73,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let overview_tbl = get_sample_overview_tbl(&tercen_ctx, &sample_meta_factor).await?;
-    // println!("overview_tbl {:?}", &overview_tbl);
 
     let task_and_pop_df = overview_tbl
         .select([".population.level", ".taskId", ".parentPopName", ".populationName"])?
@@ -116,7 +111,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .ok_or_else(|| TercenError::new("Failed to get last last_pop_names."))?;
 
 
-    // println!("task_ids {:?}", &task_ids);
 
     let mut cube_queries = vec![];
     for task_id in task_ids.iter() {
@@ -138,7 +132,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         0,
         Series::new(".ci.global", (0..n_samples).collect::<Vec<_>>()),
     )?;
-    // println!("global_column_df {:?}", global_column_df);
 
     let sample_factor_names: Vec<_> = sample_meta_factor.factors.iter()
         .map(|f| f.name.to_string())
@@ -351,7 +344,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 
-    return Ok(());
+    // return Ok(());
 
     let mut file = File::open(filename).await?;
     let mut bytes = vec![];
@@ -396,8 +389,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let response = tercen_ctx.factory
         .table_service()?
         .upload_table(outbound).await?;
-
-    // println!("table_service.upload_table -- {:?}", response);
 
     let schema = response.into_inner().result
         .ok_or_else(|| TercenError::new("response.result missing"))?;
@@ -477,8 +468,6 @@ fn get_sample_meta_factor(cube_query: CubeQuery) -> Result<MetaFactor, Box<dyn E
             e_meta_factor::Object::Metafactor(meta_factor) => Some(meta_factor),
         })
         .ok_or_else(|| TercenError::new("Operator specification is required."))?;
-
-    // println!("sample_meta_factor {:?}", &sample_meta_factor);
 
     assert_eq!(&sample_meta_factor.ontology_mapping, "sample");
     assert_eq!(&sample_meta_factor.crosstab_mapping, "column");
