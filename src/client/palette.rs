@@ -1,5 +1,5 @@
 use plotters::style::RGBAColor;
-use serde::{Deserialize, Serialize};
+
 
 #[derive(Clone)]
 pub struct JetPalette {

@@ -7,29 +7,29 @@ extern crate num_format;
 
 use num_format::{Locale, ToFormattedString};
 
-use logicle::{Logicle, LogicleResult, LogicleError};
+use logicle::{Logicle};
 
 use std::collections::HashMap;
 use std::error::Error;
 use std::io::Cursor;
 use std::iter;
-use std::marker::PhantomData;
+
 use std::ops::Range;
 use std::str::FromStr;
-use std::time::SystemTime;
+
 use arrow::array::Array;
 use base64::prelude::*;
 use clap::Parser;
-use plotters::chart::LabelAreaPosition::Left;
+
 use plotters::coord::Shift;
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 use polars::export::arrow::io::iterator::StreamingIterator;
-use plotters::coord::combinators::IntoLogRange;
+
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
 use polars::export::num::real::Real;
-use polars::io::mmap::MmapBytesReader;
+
 use polars::prelude::*;
 use prost::bytes::Buf;
 use tokio::fs::File;
@@ -41,12 +41,15 @@ use crate::client::args::TercenArgs;
 use crate::client::palette::JetPalette;
 use crate::client::quartiles::quartiles;
 use crate::client::shapes::Shape;
-use crate::tercen::{Acl, CrosstabSpec, CubeAxisQuery, CubeQuery, e_file_document, e_file_metadata, e_meta_factor, e_relation, e_schema, e_task, EFileDocument, EFileMetadata, EMetaFactor, ERelation, ETask, Factor, FileDocument, FileMetadata, MetaFactor, Pair, ReqUploadTable, SimpleRelation, PreProcessor, Axis, ESchema};
+use crate::tercen::{Acl, CrosstabSpec, CubeAxisQuery, CubeQuery, e_file_document, e_file_metadata, e_meta_factor, e_relation, e_task, EFileDocument, EFileMetadata, EMetaFactor, ERelation, ETask, Factor, FileDocument, FileMetadata, MetaFactor, Pair, ReqUploadTable, SimpleRelation, PreProcessor};
 use crate::tercen::e_operator_input_spec::Object;
 use crate::client::utils::*;
 
 mod client;
 mod tercen;
+
+ const FONT: &str = "sans-serif";
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -192,7 +195,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let pos_w = ((width as f64) / 2.0) as i32;
         let pos_h = ((height as f64) / 2.0) as i32;
 
-        let style = ("sans-serif", 14, &BLACK)
+        let style = (FONT, 14, &BLACK)
             .into_text_style(col_header_area)
             .pos(Pos::new(HPos::Center, VPos::Center));
 
@@ -263,7 +266,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // pop_names
     // for (pop_name, pop_area) in parent_pop_names.iter().zip(pop_name_areas.iter()) {
-    for (((parent_pop_name, pop_name), pop_area), population_level) in (parent_pop_names.iter().zip(pop_names.iter())).zip(pop_name_areas.iter()).zip(population_levels.iter()) {
+    for (((_parent_pop_name, pop_name), pop_area), population_level) in (parent_pop_names.iter().zip(pop_names.iter())).zip(pop_name_areas.iter()).zip(population_levels.iter()) {
         let (width, height) = pop_area.dim_in_pixel();
 
         let pop_count = pop_count_previous.iter()
@@ -274,7 +277,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .filter(|((_ci, level), _pop_count)| level.eq(&(population_level + 1)))
             .fold(0.0, |sum, ((_ci, _level), pop_count)| sum + *pop_count);
 
-        let style = ("sans-serif", 18, &BLACK)
+        let style = (FONT, 18, &BLACK)
             .into_text_style(pop_area)
             .pos(Pos::new(HPos::Center, VPos::Bottom))
             .transform(FontTransform::Rotate270);
@@ -285,7 +288,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         pop_area.draw_text(&pop_name_desc, &style, (pos_w, pos_h))?;
 
-        let style = ("sans-serif", 12, &BLACK)
+        let style = (FONT, 12, &BLACK)
             .into_text_style(pop_area)
             .pos(Pos::new(HPos::Center, VPos::Top))
             .transform(FontTransform::Rotate270);
@@ -314,7 +317,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .into_no_null_iter()
         .collect::<Vec<_>>();
 
-    for (((task_id, pop_name), cube_query), (drawing_area, population_level)) in task_ids.iter()
+    for (((task_id, _pop_name), cube_query), (drawing_area, population_level)) in task_ids.iter()
         .zip(parent_pop_names.iter())
         .zip(cube_queries.iter())
         .zip(drawing_areas.into_iter()
@@ -920,27 +923,12 @@ fn draw_sample_density(
     // 1000000.to_formatted_string(&Locale::en);
 
     let total_pop = axis_query.total_pop(pop_count_previous)?;
-    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;;
-    let population_count = axis_query.population_count(pop_count_previous);;
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
+    let population_count = axis_query.population_count(pop_count_previous);
 
-    let caption = match population_count {
-        None => {
-            format!("Total: {:.1}% ",
-                    (histogram_count / total_pop) * 100.0)
-        }
-        Some(population_count) => {
-            if axis_query.population_level == 0 {
-                format!("Total : {:.1}% N: {}",
-                        (population_count / total_pop) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
-            } else {
-                format!("Total : {:.1}% Parent : {:.1}% N: {}",
-                        (population_count / total_pop) * 100.0,
-                        (population_count / histogram_count) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
-            }
-        }
-    };
+    let caption = get_population_caption(&axis_query, total_pop, histogram_count, population_count);
 
-    let caption_style = TextStyle::from(("sans-serif", 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+    let caption_style = TextStyle::from((FONT, 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
 
     let mut chart_builder = ChartBuilder::on(drawing_area)
         .caption(caption, caption_style)
@@ -964,7 +952,7 @@ fn draw_sample_density(
     chart_builder
         .configure_secondary_axes()
         .axis_style(secondary_color.clone())
-        .label_style(("sans-serif", 20).into_font().color(&secondary_color))
+        .label_style((FONT, 20).into_font().color(&secondary_color))
         .draw()?;
 
 
@@ -1003,6 +991,25 @@ fn draw_sample_density(
     Ok(())
 }
 
+fn get_population_caption(axis_query: &AxisQueryWrapper, total_pop: f64, histogram_count: f64, population_count: Option<f64>) -> String {
+    let caption = match population_count {
+        None => {
+            format!("Total: {:.1}% ",
+                    (histogram_count / total_pop) * 100.0)
+        }
+        Some(population_count) => {
+            if axis_query.population_level == 0 {
+                format!("Total : {:.1}% N: {}",
+                        (population_count / total_pop) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
+            } else {
+                format!("Total : {:.1}% Parent : {:.1}% N: {}",
+                        (population_count / total_pop) * 100.0,
+                        (population_count / histogram_count) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
+            }
+        }
+    };
+    caption
+}
 
 fn draw_sample_histogram(
     axis_query: AxisQueryWrapper,
@@ -1025,27 +1032,12 @@ fn draw_sample_histogram(
                               (primary_x_coord.range.end, primary_y_coord.range.end)];
 
     let total_pop = axis_query.total_pop(pop_count_previous)?;
-    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;;
-    let population_count = axis_query.population_count(pop_count_previous);;
-
-    let caption = match population_count {
-        None => {
-            format!("Total: {:.1}% ",
-                    (histogram_count / total_pop) * 100.0)
-        }
-        Some(population_count) => {
-            if axis_query.population_level == 0 {
-                format!("Total : {:.1}% N: {}",
-                        (population_count / total_pop) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
-            } else {
-                format!("Total : {:.1}% Parent : {:.1}% N: {}",
-                        (population_count / total_pop) * 100.0,
-                        (population_count / histogram_count) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
-            }
-        }
-    };
-
-    let caption_style = TextStyle::from(("sans-serif", 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
+    let population_count = axis_query.population_count(pop_count_previous);
+ 
+    let caption = get_population_caption(&axis_query, total_pop, histogram_count, population_count);
+ 
+    let caption_style = TextStyle::from((FONT, 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
 
     let mut chart_builder = ChartBuilder::on(drawing_area)
         .caption(caption, caption_style)
@@ -1067,7 +1059,7 @@ fn draw_sample_histogram(
     chart_builder
         .configure_secondary_axes()
         .axis_style(secondary_color.clone())
-        .label_style(("sans-serif", 20).into_font().color(&secondary_color))
+        .label_style((FONT, 20).into_font().color(&secondary_color))
         .draw()?;
 
     chart_builder.draw_series(LineSeries::new(primary_values, &primary_color))?;
@@ -1524,9 +1516,9 @@ mod tests {
 
         root_area.fill(&WHITE)?;
 
-        let root_area = root_area.titled("Image Title", ("sans-serif", 60))?;
+        let root_area = root_area.titled("Image Title", (FONT, 60))?;
 
-        let (upper, lower) = root_area.split_vertically(512);
+        let (upper, _lower) = root_area.split_vertically(512);
 
         let mut x_pre_processor = PreProcessor::default();
         let mut y_pre_processor = PreProcessor::default();
@@ -1582,7 +1574,7 @@ mod tests {
         let mut chart_builder = ChartBuilder::on(&upper)
             .margin(5)
             .set_all_label_area_size(50)
-            .caption("Exp with Asinh axis", ("sans-serif", 40))
+            .caption("Exp with Asinh axis", (FONT, 40))
             .build_cartesian_2d(primary_x_coord, primary_y_coord)?
             .set_secondary_coord(x_range, y_range);
 
@@ -1598,7 +1590,7 @@ mod tests {
         chart_builder
             .configure_secondary_axes()
             .axis_style(secondary_color.clone())
-            .label_style(("sans-serif", 20).into_font().color(&secondary_color))
+            .label_style((FONT, 20).into_font().color(&secondary_color))
             .draw()?;
 
         chart_builder.draw_series(LineSeries::new(primary_values, &primary_color))?;
@@ -1625,7 +1617,7 @@ mod tests {
             .y_label_area_size(40)
             .right_y_label_area_size(40)
             .margin(5)
-            .caption("Dual Y-Axis Example", ("sans-serif", 50.0).into_font())
+            .caption("Dual Y-Axis Example", (FONT, 50.0).into_font())
             .build_cartesian_2d(0f32..10f32, (0.1f32..1e10f32).log_scale())?
             .set_secondary_coord(0f32..10f32, -1.0f32..1.0f32);
 

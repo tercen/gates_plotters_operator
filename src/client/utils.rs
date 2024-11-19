@@ -1,6 +1,6 @@
 use std::error::Error;
 use crate::client::TercenError;
-use crate::tercen::{e_schema, CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqGetCubeQuery, ReqStreamTable, TableSchema, e_workflow, RunComputationTask, ETask};
+use crate::tercen::{e_schema, CubeQuery, ESchema, Pair, RunComputationTask, ETask};
 use crate::tercen::e_task::Object;
 
 pub(crate) trait ETaskHelper {

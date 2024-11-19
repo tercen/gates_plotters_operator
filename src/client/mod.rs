@@ -4,15 +4,15 @@ pub mod quartiles;
 pub mod shapes;
 pub mod utils;
 
-use arrow::array::RecordBatch;
-use arrow::error::ArrowError;
-use arrow::ipc::reader::StreamReader;
+
+
+
 use clap::Parser;
 use polars::prelude::*;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::Cursor;
-use std::str::FromStr;
+
 
 use crate::client::args::TercenArgs;
 use crate::tercen::e_task::Object;
@@ -21,13 +21,13 @@ use crate::tercen::table_schema_service_client::TableSchemaServiceClient;
 use crate::tercen::task_service_client::TaskServiceClient;
 use crate::tercen::user_service_client::UserServiceClient;
 use crate::tercen::workflow_service_client::WorkflowServiceClient;
-use crate::tercen::{e_schema, CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqGetCubeQuery, ReqStreamTable, TableSchema, e_workflow, RunComputationTask, ETask, RespStreamTable};
+use crate::tercen::{CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqStreamTable, e_workflow, ETask};
 use tonic::codegen::tokio_stream::{Stream, StreamExt};
 use tonic::codegen::InterceptedService;
-use tonic::metadata::{AsciiMetadataValue, MetadataValue};
+use tonic::metadata::{AsciiMetadataValue};
 use tonic::service::Interceptor;
 use tonic::transport::{Channel, Uri};
-use tonic::{Request, Status, Streaming};
+use tonic::{Request, Status};
 
 use crate::client::utils::*;
 
@@ -433,7 +433,7 @@ impl TercenContext {
         }
 
         if result.is_none() {
-            Err((Box::new(TercenError::new("select_data_frame_from_id -- empty result !!")) as Box<dyn Error>))
+            Err(Box::new(TercenError::new("select_data_frame_from_id -- empty result !!")) as Box<dyn Error>)
         } else {
             Ok(result.unwrap())
         }
@@ -449,7 +449,7 @@ impl TercenContext {
         let schema = self.get_schema(&id).await?;
         let n_rows = schema.get_n_rows()? as i64;
 
-        let mut stream = self
+        let stream = self
             .factory
             .table_service()?
             .stream_table(ReqStreamTable {

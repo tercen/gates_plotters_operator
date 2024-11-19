@@ -2,7 +2,7 @@ use std::error::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use crate::client::TercenError;
-use crate::{PreProcess, PreProcessorCodec};
+use crate::{PreProcessorCodec};
 
 #[derive(Clone)]
 pub enum Shape {

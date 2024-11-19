@@ -1,5 +1,5 @@
 #FROM tercen/rust-nightly:buster-slim as builder
-FROM rust:1.77.2-slim-buster as builder
+FROM rust:1.77.2-slim-buster AS builder
 
 # need by custom build
 RUN apt update && apt install -y pkg-config libssl-dev clang protobuf-compiler gcc make \
