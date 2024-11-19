@@ -17,7 +17,6 @@ use std::iter;
 use std::ops::Range;
 use std::str::FromStr;
 
-use arrow::array::Array;
 use base64::prelude::*;
 use clap::Parser;
 
@@ -28,10 +27,9 @@ use plotters::style::text_anchor::{HPos, Pos, VPos};
 use polars::export::arrow::io::iterator::StreamingIterator;
 
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
-use polars::export::num::real::Real;
-
+ 
 use polars::prelude::*;
-use prost::bytes::Buf;
+ 
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tonic::codegen::Body;
@@ -1499,7 +1497,7 @@ impl Ranged for PreProcessorsCoord {
 
 #[cfg(test)]
 mod tests {
-    use polars::export::num::Float;
+
     use crate::tercen::{OperatorRef, PropertyValue};
     use super::*;
     const OUT_FILE_NAME: &str = "plotters-doc-data/sample.png";
