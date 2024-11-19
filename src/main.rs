@@ -3,6 +3,9 @@ extern crate clap;
 extern crate plotters;
 extern crate polars;
 extern crate logicle;
+extern crate num_format;
+
+use num_format::{Locale, ToFormattedString};
 
 use logicle::{Logicle, LogicleResult, LogicleError};
 
@@ -17,6 +20,7 @@ use std::time::SystemTime;
 use arrow::array::Array;
 use base64::prelude::*;
 use clap::Parser;
+use plotters::chart::LabelAreaPosition::Left;
 use plotters::coord::Shift;
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
@@ -31,7 +35,7 @@ use prost::bytes::Buf;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tonic::codegen::Body;
-
+use tonic::codegen::tokio_stream::StreamExt;
 use crate::client::{TercenContext, TercenError};
 use crate::client::args::TercenArgs;
 use crate::client::palette::JetPalette;
@@ -151,7 +155,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let rows_width = 80;
     let cols_height = 50;
     let pop_title_size = 0;
-    let n_rows = cube_queries.len()-1; // remove last
+    let n_rows = cube_queries.len() - 1; // remove last
 
     let mut pop_count_previous = HashMap::new();
 
@@ -161,9 +165,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     root_area.fill(&WHITE)?;
 
-    // let root_area = root_area.titled(&format!("{} overview", &last_pop_names), ("sans-serif", 30))?;
-
-     let (pop_names_area, drawing_areas) = root_area.split_horizontally(rows_width);
+    let (pop_names_area, drawing_areas) = root_area.split_horizontally(rows_width);
 
     let (_, pop_names_area) = pop_names_area.split_vertically(cols_height);
     let pop_name_areas = pop_names_area.split_evenly((n_rows, 1));
@@ -205,27 +207,55 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
 
-    let drawing_areas = drawing_areas.split_evenly((cube_queries.len()-1, 1));
+    let drawing_areas = drawing_areas.split_evenly((cube_queries.len() - 1, 1));
 
     // use std::time::Instant;
     // let now = Instant::now();
 
-    for (((task_id, pop_name), cube_query), population_level) in task_ids.iter()
-        .zip(parent_pop_names.iter())
-        .zip(cube_queries.iter())
-        .zip(population_levels.into_iter()) {
-        let (qt_df, ci_df) = create_col_and_qt_dataframe(
-            &tercen_ctx,
-            &sample_meta_factor,
-            &global_column_df,
-            &cube_query,
-        ).await?;
+    // we should use .global.ci
+    for (cube_query, population_level) in cube_queries.iter().zip(population_levels.into_iter()) {
+        let axis_query = cube_query
+            .axis_queries
+            .first()
+            .ok_or_else(|| TercenError::new("axis_query is required"))?;
 
-        exec_cube_query(
-            &cube_query,
-            qt_df,
-            population_level,
-            &mut pop_count_previous)?;
+        let has_x_axis = axis_query
+            .x_axis
+            .as_ref()
+            .map(|x_factor| !x_factor.name.is_empty())
+            .ok_or_else(|| TercenError::new("x_axis is required"))?;
+
+        let histogram_count_name = if has_x_axis { ".histogram_count" } else { ".y" };
+
+        let mut stream = tercen_ctx
+            .select_stream(&cube_query.qt_hash,
+                           &vec![".ci".to_string(),
+                                 histogram_count_name.to_string()])
+            .await?;
+
+        while let Some(evt) = stream.next().await {
+            let data_frame = evt?;
+            let data_frames_by_ci = data_frame
+                .partition_by_stable([".ci"], true)?;
+            for data_frame_by_ci in data_frames_by_ci.into_iter() {
+                let current_ci: i32 = data_frame_by_ci
+                    .column(".ci")?
+                    .i32()?
+                    .into_no_null_iter()
+                    .next()
+                    .ok_or_else(|| TercenError::new("failed to get .ci"))?;
+
+                let old_histogram_count = pop_count_previous.get(&(current_ci, population_level))
+                    .map(|c| *c)
+                    .unwrap_or(0.0);
+
+                let histogram_count = data_frame_by_ci.column(histogram_count_name)?.f64()?
+                    .into_no_null_iter()
+                    .fold(old_histogram_count, |sum, value| sum + value);
+
+                pop_count_previous.insert((current_ci, population_level), histogram_count);
+            }
+        }
     }
 
     let population_levels = task_and_pop_df
@@ -248,7 +278,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .fold(0.0, |sum, ((_ci, _level), pop_count)| sum + *pop_count);
 
         let next_pop_count = pop_count_previous.iter()
-            .filter(|((_ci, level), _pop_count)| level.eq(&(population_level+1)))
+            .filter(|((_ci, level), _pop_count)| level.eq(&(population_level + 1)))
             .fold(0.0, |sum, ((_ci, _level), pop_count)| sum + *pop_count);
 
         let style = ("sans-serif", 18, &BLACK)
@@ -268,9 +298,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .transform(FontTransform::Rotate270);
 
         let pop_name_desc = if *population_level == 0 {
-            format!("Total : {:.1}%", 100.0*next_pop_count/total_pop_count)
+            format!("Total : {:.1}% N: {}",
+                    100.0 * next_pop_count / total_pop_count,
+                    (next_pop_count as u64).to_formatted_string(&Locale::en))
         } else {
-            format!("Total : {:.1}% Parent: {:.1}%", 100.0*next_pop_count/total_pop_count, 100.0*next_pop_count/pop_count)
+            format!("Total : {:.1}% Parent: {:.1}% N: {}",
+                    100.0 * next_pop_count / total_pop_count,
+                    100.0 * next_pop_count / pop_count,
+                    (next_pop_count as u64).to_formatted_string(&Locale::en))
         };
 
         let pos_w = ((width as f64) / 2.0) as i32 + 7;
@@ -524,7 +559,11 @@ fn exec_cube_query(
 
             pop_count_previous.insert((current_ci, population_level), histogram_count);
         } else {
-            // draw_sample_histogram(axis_query, drawing_area)
+            let histogram_count = qt_df.column(".y")?.f64()?
+                .into_no_null_iter()
+                .fold(0.0, |sum, value| sum + value);
+
+            pop_count_previous.insert((current_ci, population_level), histogram_count);
         }
     }
     Ok(())
@@ -713,6 +752,26 @@ impl AxisQueryWrapper {
 
         Ok(x_min..x_max)
     }
+
+    fn total_pop(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
+        Ok(pop_count_previous
+            .get(&(self.current_ci, 0))
+            .map(|v| *v)
+            .ok_or_else(|| TercenError::new("total_pop is required"))?)
+    }
+
+    fn histogram_count_with(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
+        Ok(pop_count_previous
+            .get(&(self.current_ci, self.population_level))
+            .map(|v| *v)
+            .ok_or_else(|| TercenError::new("histogram_count is required"))?)
+    }
+
+    fn population_count(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Option<f64> {
+        pop_count_previous
+            .get(&(self.current_ci, self.population_level + 1))
+            .map(|v| *v)
+    }
 }
 
 fn create_palette_from_df(
@@ -844,7 +903,7 @@ fn draw_sample(
     if axis_query.has_x_axis()? {
         draw_sample_density(axis_query, pop_count_previous, drawing_area)
     } else {
-        draw_sample_histogram(axis_query, drawing_area)
+        draw_sample_histogram(axis_query, pop_count_previous, drawing_area)
     }
 }
 
@@ -856,19 +915,6 @@ fn draw_sample_density(
     let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
     let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
 
-    let total_pop = pop_count_previous
-        .get(&(axis_query.current_ci, 0))
-        .map(|v| *v)
-        .ok_or_else(|| TercenError::new("total_pop is required"))?;
-
-    let histogram_count = pop_count_previous
-        .get(&(axis_query.current_ci, axis_query.population_level))
-        .map(|v| *v)
-        .ok_or_else(|| TercenError::new("histogram_count is required"))?;
-
-    let population_count = pop_count_previous
-        .get(&(axis_query.current_ci, axis_query.population_level + 1))
-        .map(|v| *v);
 
     let x_axis_factor = axis_query.x_axis_factor()?;
     let y_axis_factor = axis_query.y_axis_factor()?;
@@ -876,32 +922,39 @@ fn draw_sample_density(
     let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
-    let primary_x_coord = PreProcessorsRange::from_range(axis_query.x_pre_processors()?, x_range.clone());
-    let primary_y_coord = PreProcessorsRange::from_range(axis_query.y_pre_processors()?, y_range.clone());
+    let primary_x_coord = PreProcessorsRange::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
+    let primary_y_coord = PreProcessorsRange::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
 
     let primary_values = vec![(primary_x_coord.range.start, primary_y_coord.range.start),
                               (primary_x_coord.range.end, primary_y_coord.range.end)];
 
+    // 1000000.to_formatted_string(&Locale::en);
+
+    let total_pop = axis_query.total_pop(pop_count_previous)?;
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;;
+    let population_count = axis_query.population_count(pop_count_previous);;
+
     let caption = match population_count {
         None => {
-            format!("Total : {:.1}%",
+            format!("Total: {:.1}% ",
                     (histogram_count / total_pop) * 100.0)
         }
         Some(population_count) => {
             if axis_query.population_level == 0 {
-                format!("Total : {:.1}%",
-                        (population_count / total_pop) * 100.0 )
+                format!("Total : {:.1}% N: {}",
+                        (population_count / total_pop) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
             } else {
-                format!("Total : {:.1}% Parent : {:.1}%",
+                format!("Total : {:.1}% Parent : {:.1}% N: {}",
                         (population_count / total_pop) * 100.0,
-                        (population_count / histogram_count) * 100.0)
+                        (population_count / histogram_count) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
             }
-
         }
     };
 
+    let caption_style = TextStyle::from(("sans-serif", 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+
     let mut chart_builder = ChartBuilder::on(drawing_area)
-        .caption(caption, ("sans-serif", 13))
+        .caption(caption, caption_style)
         .margin(5)
         .margin_bottom(20)
         .x_label_area_size(40)
@@ -964,6 +1017,7 @@ fn draw_sample_density(
 
 fn draw_sample_histogram(
     axis_query: AxisQueryWrapper,
+    pop_count_previous: &HashMap<(i32, i32), f64>,
     drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> {
     let color = BLUE; //RGBAColor(0, 0, 0, 1.0);
     let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
@@ -974,13 +1028,38 @@ fn draw_sample_histogram(
     let x_range = axis_query.column_range_f64(".x")?; //x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
-    let primary_x_coord = PreProcessorsRange::from_range(axis_query.x_pre_processors()?, x_range.clone());
-    let primary_y_coord = PreProcessorsRange::from_range(axis_query.y_pre_processors()?, y_range.clone());
+    // Note x and y processor must be
+    let primary_x_coord = PreProcessorsRange::from_range(axis_query.y_pre_processors()?, x_range.clone())?;
+    let primary_y_coord = PreProcessorsRange::from_range(axis_query.x_pre_processors()?, y_range.clone())?;
 
     let primary_values = vec![(primary_x_coord.range.start, primary_y_coord.range.start),
                               (primary_x_coord.range.end, primary_y_coord.range.end)];
 
+    let total_pop = axis_query.total_pop(pop_count_previous)?;
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;;
+    let population_count = axis_query.population_count(pop_count_previous);;
+
+    let caption = match population_count {
+        None => {
+            format!("Total: {:.1}% ",
+                    (histogram_count / total_pop) * 100.0)
+        }
+        Some(population_count) => {
+            if axis_query.population_level == 0 {
+                format!("Total : {:.1}% N: {}",
+                        (population_count / total_pop) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
+            } else {
+                format!("Total : {:.1}% Parent : {:.1}% N: {}",
+                        (population_count / total_pop) * 100.0,
+                        (population_count / histogram_count) * 100.0, (population_count as u64).to_formatted_string(&Locale::en))
+            }
+        }
+    };
+
+    let caption_style = TextStyle::from(("sans-serif", 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+
     let mut chart_builder = ChartBuilder::on(drawing_area)
+        .caption(caption, caption_style)
         .margin(5)
         .set_left_and_bottom_label_area_size(50)
         .build_cartesian_2d(primary_x_coord, primary_y_coord)?
@@ -1143,11 +1222,23 @@ struct PreProcessorsRange {
 }
 
 impl PreProcessorsRange {
-    fn from_range(pre_processs: Vec<PreProcess>, x_range: Range<f64>) -> Self {
+    fn from_range(pre_processs: Vec<PreProcess>, x_range: Range<f64>) -> Result<Self, Box<dyn Error>> {
+        if !x_range.start.is_finite() {
+            return Err(TercenError::new("x_range.start.is_finite").into());
+        }
+        if !x_range.end.is_finite() {
+            return Err(TercenError::new("x_range.start.is_finite").into());
+        }
         let min_encoded = PreProcess::encode_pre_processors(&pre_processs, x_range.start);
         let max_encoded = PreProcess::encode_pre_processors(&pre_processs, x_range.end);
+        if !min_encoded.is_finite() {
+            return Err(TercenError::new("x_range.start.is_finite").into());
+        }
+        if !max_encoded.is_finite() {
+            return Err(TercenError::new("x_range.start.is_finite").into());
+        }
 
-        PreProcessorsRange::from_encoded_range(pre_processs, min_encoded..max_encoded)
+        Ok(PreProcessorsRange::from_encoded_range(pre_processs, min_encoded..max_encoded))
     }
 
     fn from_encoded_range(pre_processors: Vec<PreProcess>, range: Range<f64>) -> Self {
@@ -1493,8 +1584,8 @@ mod tests {
         let x_range = min_x..max_x;
         let y_range = min_y..max_y;
 
-        let primary_x_coord = PreProcessorsRange::from_range(x_pre_processs, x_range.clone());
-        let primary_y_coord = PreProcessorsRange::from_range(y_pre_processs, y_range.clone());
+        let primary_x_coord = PreProcessorsRange::from_range(x_pre_processs, x_range.clone())?;
+        let primary_y_coord = PreProcessorsRange::from_range(y_pre_processs, y_range.clone())?;
 
         let primary_values = vec![(primary_x_coord.range.start, primary_y_coord.range.start),
                                   (primary_x_coord.range.end, primary_y_coord.range.end)];

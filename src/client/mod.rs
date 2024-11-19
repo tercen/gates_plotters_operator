@@ -21,13 +21,13 @@ use crate::tercen::table_schema_service_client::TableSchemaServiceClient;
 use crate::tercen::task_service_client::TaskServiceClient;
 use crate::tercen::user_service_client::UserServiceClient;
 use crate::tercen::workflow_service_client::WorkflowServiceClient;
-use crate::tercen::{e_schema, CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqGetCubeQuery, ReqStreamTable, TableSchema, e_workflow, RunComputationTask, ETask};
-use tonic::codegen::tokio_stream::StreamExt;
+use crate::tercen::{e_schema, CubeQuery, ESchema, GetRequest, Pair, ReqConnect, ReqGetCubeQuery, ReqStreamTable, TableSchema, e_workflow, RunComputationTask, ETask, RespStreamTable};
+use tonic::codegen::tokio_stream::{Stream, StreamExt};
 use tonic::codegen::InterceptedService;
 use tonic::metadata::{AsciiMetadataValue, MetadataValue};
 use tonic::service::Interceptor;
 use tonic::transport::{Channel, Uri};
-use tonic::{Request, Status};
+use tonic::{Request, Status, Streaming};
 
 use crate::client::utils::*;
 
@@ -245,7 +245,7 @@ impl TercenContext {
                 Ok(args.taskId.clone())
             }
             Err(_) => {
-                Ok("749cfa34aea141eb263d48554f0d2d59".to_string())
+                Ok("749cfa34aea141eb263d48554f859788".to_string())
             }
         }
     }
@@ -413,30 +413,12 @@ impl TercenContext {
         id: &str,
         column_names: &Vec<String>,
     ) -> Result<DataFrame, Box<dyn Error>> {
-        let schema = self.get_schema(&id).await?;
-        let n_rows = schema.get_n_rows()? as i64;
-
-        let mut stream = self
-            .factory
-            .table_service()?
-            .stream_table(ReqStreamTable {
-                table_id: id.to_string(),
-                cnames: column_names.clone(),
-                offset: 0,
-                limit: n_rows,
-                binary_format: "arrow".to_string(),
-            })
-            .await?
-            .into_inner();
-
         let mut result = None;
 
+        let mut stream = self.select_stream(id, column_names).await?;
+
         while let Some(evt) = stream.next().await {
-            let c = Cursor::new(evt?.result);
-            let reader = IpcStreamReader::new(c);
-            let data_frame = reader
-                .finish()
-                .map_err(|e| Box::new(TercenError::new(&e.to_string())) as Box<dyn Error>)?;
+            let data_frame = evt?;
 
             if result.is_none() {
                 result = Some(data_frame);
@@ -454,5 +436,42 @@ impl TercenContext {
         } else {
             Ok(result.unwrap())
         }
+    }
+
+    pub async fn select_stream(
+        &self,
+        id: &str,
+        column_names: &Vec<String>,
+    ) -> Result<impl Stream<Item=Result<DataFrame, Box<dyn std::error::Error + 'static>>>, Box<dyn Error>> {
+
+        // Map<Streaming<RespStreamTable>, fn(Result<RespStreamTable, Status>) -> Result<DataFrame, Box<dyn Error>>> {
+        let schema = self.get_schema(&id).await?;
+        let n_rows = schema.get_n_rows()? as i64;
+
+        let mut stream = self
+            .factory
+            .table_service()?
+            .stream_table(ReqStreamTable {
+                table_id: id.to_string(),
+                cnames: column_names.clone(),
+                offset: 0,
+                limit: n_rows,
+                binary_format: "arrow".to_string(),
+            })
+            .await.unwrap()
+            .into_inner();
+
+        Ok(stream.map(|evt| {
+            if evt.is_ok() {
+                let reader = IpcStreamReader::new(Cursor::new(evt.unwrap().result));
+                let data_frame = reader
+                    .finish()
+                    .map_err(|e| Box::new(TercenError::new(&e.to_string())) as Box<dyn Error>);
+                data_frame
+            } else {
+                let status = evt.unwrap_err();
+                Err(Box::new(TercenError::new(&format!("select_stream -- bad status {status}"))) as Box<dyn Error>)
+            }
+        }))
     }
 }
