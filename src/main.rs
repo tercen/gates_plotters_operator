@@ -24,7 +24,6 @@ use plotters::coord::Shift;
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
-use polars::export::arrow::io::iterator::StreamingIterator;
 
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
  
@@ -32,7 +31,6 @@ use polars::prelude::*;
  
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
-use tonic::codegen::Body;
 use tonic::codegen::tokio_stream::StreamExt;
 use crate::client::{TercenContext, TercenError};
 use crate::client::args::TercenArgs;
