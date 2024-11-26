@@ -470,6 +470,9 @@ fn get_sample_meta_factor(cube_query: CubeQuery) -> Result<MetaFactor, Box<dyn E
 
     assert_eq!(&sample_meta_factor.ontology_mapping, "sample");
     assert_eq!(&sample_meta_factor.crosstab_mapping, "column");
+    if sample_meta_factor.factors.is_empty() {
+        return Err(Box::new(TercenError::new("A sample factor is required.")))
+    }
     Ok(sample_meta_factor.clone())
 }
 
