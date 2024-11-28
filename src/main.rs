@@ -1182,7 +1182,6 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
 }
 
 #[derive(Clone)]
-
 pub struct PreProcessorsCoord {
     linear: RangedCoordf64,
     logic: Range<f64>,
@@ -1244,21 +1243,22 @@ impl From<PreProcessorsRange> for PreProcessorsCoord {
         let zero_point = spec.zero;
         let mut start = spec.range.start.as_f64() - zero_point;
         let mut end = spec.range.end.as_f64() - zero_point;
-        let negative = if start < 0.0 || end < 0.0 {
-            start = -start;
-            end = -end;
-            true
-        } else {
-            false
-        };
+        let negative = false;
+            // let negative = if start < 0.0 || end < 0.0 {
+        //     start = -start;
+        //     end = -end;
+        //     true
+        // } else {
+        //     false
+        // };
 
-        if start < end {
-            if start == 0.0 {
-                start = start.max(end * 1e-5);
-            }
-        } else if end == 0.0 {
-            end = end.max(start * 1e-5);
-        }
+        // if start < end {
+        //     if start == 0.0 {
+        //         start = start.max(end * 1e-5);
+        //     }
+        // } else if end == 0.0 {
+        //     end = end.max(start * 1e-5);
+        // }
 
         PreProcessorsCoord {
             linear: (spec.decode(start)..spec.decode(end)).into(),
@@ -1501,7 +1501,7 @@ mod tests {
 
     use crate::tercen::{OperatorRef, PropertyValue};
     use super::*;
-    const OUT_FILE_NAME: &str = "plotters-doc-data/sample.png";
+    const OUT_FILE_NAME: &str = "plotters-doc-data/main_test.png";
     const OUT_FILE_NAME2: &str = "plotters-doc-data/twoscale.png";
 
 
@@ -1533,6 +1533,7 @@ mod tests {
 
         let x_pre_processors: Vec<PreProcessor> = vec![]; // vec![x_pre_processor];
         let y_pre_processors = vec![y_pre_processor];
+        let y_pre_processors: Vec<PreProcessor> = vec![];
 
         let x_pre_processs = x_pre_processors
             .iter()
@@ -1543,10 +1544,9 @@ mod tests {
             .iter()
             .map(|p| PreProcess::from_pre_processor(p.clone()))
             .collect::<Result<Vec<_>, _>>()?;
-
-
-        let min_x = 1.0f64;
-        let max_x = 100000.0f64;
+        
+        let min_x = -10000.0f64;
+        let max_x = 10000.0f64;
 
         let x_axis_linspace = (min_x..max_x).step((max_x - min_x).abs() / 200.0);
 
