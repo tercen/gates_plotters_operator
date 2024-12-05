@@ -3,9 +3,7 @@ pub mod palette;
 pub mod quartiles;
 pub mod shapes;
 pub mod utils;
-
-
-
+pub mod query_helper;
 
 use clap::Parser;
 use polars::prelude::*;
@@ -246,7 +244,7 @@ impl TercenContext {
             }
             Err(_) => {
                 // Err(Box::new(TercenError::new("taskId is required")))
-                Ok("fe2bca283201d206a4449d9fd1089fa3".to_string())
+                Ok("efb13419d338776d4b677ee3eb7879e1".to_string())
             }
         }
     }

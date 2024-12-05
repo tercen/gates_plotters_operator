@@ -26,9 +26,9 @@ use plotters::prelude::*;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
- 
+
 use polars::prelude::*;
- 
+
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 use tonic::codegen::tokio_stream::StreamExt;
@@ -36,6 +36,7 @@ use crate::client::{TercenContext, TercenError};
 use crate::client::args::TercenArgs;
 use crate::client::palette::JetPalette;
 use crate::client::quartiles::quartiles;
+use crate::client::query_helper::CubeAxisQueryHelper;
 use crate::client::shapes::Shape;
 use crate::tercen::{Acl, CrosstabSpec, CubeAxisQuery, CubeQuery, e_file_document, e_file_metadata, e_meta_factor, e_relation, e_task, EFileDocument, EFileMetadata, EMetaFactor, ERelation, ETask, Factor, FileDocument, FileMetadata, MetaFactor, Pair, ReqUploadTable, SimpleRelation, PreProcessor};
 use crate::tercen::e_operator_input_spec::Object;
@@ -44,16 +45,15 @@ use crate::client::utils::*;
 mod client;
 mod tercen;
 
- const FONT: &str = "sans-serif";
+const FONT: &str = "sans-serif";
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-
     let tercen_ctx = TercenContext::new().await?;
 
     let cube_query = tercen_ctx.get_task().await?.get_cube_query()?.clone();
-     let sample_meta_factor = get_sample_meta_factor(cube_query)?;
+    let sample_meta_factor = get_sample_meta_factor(cube_query)?;
 
     let shape_tbl = get_shape_tbl(&tercen_ctx).await?;
 
@@ -108,7 +108,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .last()
         .map(|e| e.to_string())
         .ok_or_else(|| TercenError::new("Failed to get last last_pop_names."))?;
-
 
 
     let mut cube_queries = vec![];
@@ -343,7 +342,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 
-    // return Ok(());
+    return Ok(());
 
     let mut file = File::open(filename).await?;
     let mut bytes = vec![];
@@ -471,7 +470,7 @@ fn get_sample_meta_factor(cube_query: CubeQuery) -> Result<MetaFactor, Box<dyn E
     assert_eq!(&sample_meta_factor.ontology_mapping, "sample");
     assert_eq!(&sample_meta_factor.crosstab_mapping, "column");
     if sample_meta_factor.factors.is_empty() {
-        return Err(Box::new(TercenError::new("A sample factor is required.")))
+        return Err(Box::new(TercenError::new("A sample factor is required.")));
     }
     Ok(sample_meta_factor.clone())
 }
@@ -1033,9 +1032,9 @@ fn draw_sample_histogram(
     let total_pop = axis_query.total_pop(pop_count_previous)?;
     let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
     let population_count = axis_query.population_count(pop_count_previous);
- 
+
     let caption = get_population_caption(&axis_query, total_pop, histogram_count, population_count);
- 
+
     let caption_style = TextStyle::from((FONT, 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
 
     let mut chart_builder = ChartBuilder::on(drawing_area)
@@ -1079,6 +1078,7 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
     // let shapes = axis_query.encode_shapes()?;
     //we draw shapes on primary axis, we don't need to encode
     let shapes = axis_query.shapes.clone();
+
 
     let shape_style = ShapeStyle {
         color: BLACK.to_rgba(), //. mix(0.6),
@@ -1151,13 +1151,23 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
                                                shape_style))?;
             }
             Shape::YRange(shape) => {
-                cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.start),
-                                                   (cc.x_range().end, shape.range.start)],
-                                               shape_style))?;
+                if axis_query.axis_query.is_histogram() {
+                    cc.draw_series(LineSeries::new([(shape.range.start, 0.0),
+                                                       (shape.range.start, cc.y_range().end)],
+                                                   shape_style))?;
 
-                cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.end),
-                                                   (cc.x_range().end, shape.range.end)],
-                                               shape_style))?;
+                    cc.draw_series(LineSeries::new([(shape.range.end, 0.0),
+                                                       (shape.range.end, cc.y_range().end)],
+                                                   shape_style))?;
+                } else {
+                    cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.start),
+                                                       (cc.x_range().end, shape.range.start)],
+                                                   shape_style))?;
+
+                    cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.end),
+                                                       (cc.x_range().end, shape.range.end)],
+                                                   shape_style))?;
+                }
             }
             Shape::Polygon(shape) => {
                 if !shape.polygon.is_empty() {
@@ -1244,7 +1254,7 @@ impl From<PreProcessorsRange> for PreProcessorsCoord {
         let mut start = spec.range.start.as_f64() - zero_point;
         let mut end = spec.range.end.as_f64() - zero_point;
         let negative = false;
-            // let negative = if start < 0.0 || end < 0.0 {
+        // let negative = if start < 0.0 || end < 0.0 {
         //     start = -start;
         //     end = -end;
         //     true
@@ -1498,7 +1508,6 @@ impl Ranged for PreProcessorsCoord {
 
 #[cfg(test)]
 mod tests {
-
     use crate::tercen::{OperatorRef, PropertyValue};
     use super::*;
     const OUT_FILE_NAME: &str = "plotters-doc-data/main_test.png";
@@ -1544,7 +1553,7 @@ mod tests {
             .iter()
             .map(|p| PreProcess::from_pre_processor(p.clone()))
             .collect::<Result<Vec<_>, _>>()?;
-        
+
         let min_x = -10000.0f64;
         let max_x = 10000.0f64;
 

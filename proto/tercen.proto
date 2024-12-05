@@ -595,22 +595,23 @@ message CSVTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string fileDocumentId = 9;
-  string schemaId = 10;
-  string valueName = 11;
-  string variableName = 12;
-  repeated string gatherNames = 13;
-  repeated Pair environment = 14;
-  EState state = 15;
-  Date createdDate = 16;
-  Date lastModifiedDate = 17;
-  Date runDate = 18;
-  Date completedDate = 19;
-  AclContext aclContext = 20;
-  repeated Pair meta = 21;
-  ESchema schema = 22;
-  CSVParserParam params = 23;
+  int32 size = 8;
+  string projectId = 9;
+  string fileDocumentId = 10;
+  string schemaId = 11;
+  string valueName = 12;
+  string variableName = 13;
+  repeated string gatherNames = 14;
+  repeated Pair environment = 15;
+  EState state = 16;
+  Date createdDate = 17;
+  Date lastModifiedDate = 18;
+  Date runDate = 19;
+  Date completedDate = 20;
+  AclContext aclContext = 21;
+  repeated Pair meta = 22;
+  ESchema schema = 23;
+  CSVParserParam params = 24;
 }
 message CanceledState {
 }
@@ -697,21 +698,22 @@ message ComputationTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  bool removeOnGC = 9;
-  repeated string schemaIds = 10;
-  string parentTaskId = 11;
-  string fileResultId = 12;
-  repeated Pair environment = 13;
-  EState state = 14;
-  Date createdDate = 15;
-  Date lastModifiedDate = 16;
-  Date runDate = 17;
-  Date completedDate = 18;
-  AclContext aclContext = 19;
-  repeated Pair meta = 20;
-  CubeQuery query = 21;
-  ERelation computedRelation = 22;
+  int32 size = 8;
+  string projectId = 9;
+  bool removeOnGC = 10;
+  repeated string schemaIds = 11;
+  string parentTaskId = 12;
+  string fileResultId = 13;
+  repeated Pair environment = 14;
+  EState state = 15;
+  Date createdDate = 16;
+  Date lastModifiedDate = 17;
+  Date runDate = 18;
+  Date completedDate = 19;
+  AclContext aclContext = 20;
+  repeated Pair meta = 21;
+  CubeQuery query = 22;
+  ERelation computedRelation = 23;
 }
 message ComputedTableSchema {
   string id = 1;
@@ -726,15 +728,16 @@ message ComputedTableSchema {
   string folderId = 10;
   int32 nRows = 11;
   string dataDirectory = 12;
-  Acl acl = 13;
-  Date createdDate = 14;
-  Date lastModifiedDate = 15;
-  repeated Url urls = 16;
-  repeated Pair meta = 17;
-  Url url = 18;
-  repeated EColumnSchema columns = 19;
-  ERelation relation = 20;
-  CubeQuery query = 21;
+  int32 size = 13;
+  Acl acl = 14;
+  Date createdDate = 15;
+  Date lastModifiedDate = 16;
+  repeated Url urls = 17;
+  repeated Pair meta = 18;
+  Url url = 19;
+  repeated EColumnSchema columns = 20;
+  ERelation relation = 21;
+  CubeQuery query = 22;
 }
 message CpuTimeProfile {
   string name = 1;
@@ -748,19 +751,20 @@ message CreateGitOperatorTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string version = 8;
-  string operatorId = 9;
-  string gitToken = 10;
-  bool testRequired = 11;
-  repeated Pair environment = 12;
-  EState state = 13;
-  Date createdDate = 14;
-  Date lastModifiedDate = 15;
-  Date runDate = 16;
-  Date completedDate = 17;
-  AclContext aclContext = 18;
-  repeated Pair meta = 19;
-  Url url = 20;
+  int32 size = 8;
+  string version = 9;
+  string operatorId = 10;
+  string gitToken = 11;
+  bool testRequired = 12;
+  repeated Pair environment = 13;
+  EState state = 14;
+  Date createdDate = 15;
+  Date lastModifiedDate = 16;
+  Date runDate = 17;
+  Date completedDate = 18;
+  AclContext aclContext = 19;
+  repeated Pair meta = 20;
+  Url url = 21;
 }
 message CrossTabStep {
   string id = 1;
@@ -828,17 +832,18 @@ message CubeQueryTableSchema {
   string folderId = 10;
   int32 nRows = 11;
   string dataDirectory = 12;
-  string queryHash = 13;
-  string queryTableType = 14;
-  Acl acl = 15;
-  Date createdDate = 16;
-  Date lastModifiedDate = 17;
-  repeated Url urls = 18;
-  repeated Pair meta = 19;
-  Url url = 20;
-  repeated EColumnSchema columns = 21;
-  ERelation relation = 22;
-  CubeQuery query = 23;
+  int32 size = 13;
+  string queryHash = 14;
+  string queryTableType = 15;
+  Acl acl = 16;
+  Date createdDate = 17;
+  Date lastModifiedDate = 18;
+  repeated Url urls = 19;
+  repeated Pair meta = 20;
+  Url url = 21;
+  repeated EColumnSchema columns = 22;
+  ERelation relation = 23;
+  CubeQuery query = 24;
 }
 message CubeQueryTask {
   string id = 1;
@@ -848,18 +853,19 @@ message CubeQueryTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  bool removeOnGC = 9;
-  repeated string schemaIds = 10;
-  repeated Pair environment = 11;
-  EState state = 12;
-  Date createdDate = 13;
-  Date lastModifiedDate = 14;
-  Date runDate = 15;
-  Date completedDate = 16;
-  AclContext aclContext = 17;
-  repeated Pair meta = 18;
-  CubeQuery query = 19;
+  int32 size = 8;
+  string projectId = 9;
+  bool removeOnGC = 10;
+  repeated string schemaIds = 11;
+  repeated Pair environment = 12;
+  EState state = 13;
+  Date createdDate = 14;
+  Date lastModifiedDate = 15;
+  Date runDate = 16;
+  Date completedDate = 17;
+  AclContext aclContext = 18;
+  repeated Pair meta = 19;
+  CubeQuery query = 20;
 }
 message DataStep {
   string id = 1;
@@ -913,15 +919,16 @@ message DockerWebAppOperator {
   bool isPublic = 8;
   string path = 9;
   bool isViewOnly = 10;
-  string container = 11;
-  Acl acl = 12;
-  Date createdDate = 13;
-  Date lastModifiedDate = 14;
-  repeated Url urls = 15;
-  repeated Pair meta = 16;
-  Url url = 17;
-  repeated EProperty properties = 18;
-  OperatorSpec operatorSpec = 19;
+  string entryType = 11;
+  string container = 12;
+  Acl acl = 13;
+  Date createdDate = 14;
+  Date lastModifiedDate = 15;
+  repeated Url urls = 16;
+  repeated Pair meta = 17;
+  Url url = 18;
+  repeated EProperty properties = 19;
+  OperatorSpec operatorSpec = 20;
 }
 message Document {
   string id = 1;
@@ -954,7 +961,8 @@ message EnumeratedProperty {
   string name = 1;
   string description = 2;
   string defaultValue = 3;
-  repeated string values = 4;
+  bool isSingleSelection = 4;
+  repeated string values = 5;
 }
 message Errors {
   repeated Factor factors = 1;
@@ -986,22 +994,23 @@ message ExportTableTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string exportName = 9;
-  repeated string schemaIds = 10;
-  string exportType = 11;
-  string exportToId = 12;
-  string exportId = 13;
-  repeated string namespaces = 14;
-  repeated string exportedSchemaIds = 15;
-  repeated Pair environment = 16;
-  EState state = 17;
-  Date createdDate = 18;
-  Date lastModifiedDate = 19;
-  Date runDate = 20;
-  Date completedDate = 21;
-  AclContext aclContext = 22;
-  repeated Pair meta = 23;
+  int32 size = 8;
+  string projectId = 9;
+  string exportName = 10;
+  repeated string schemaIds = 11;
+  string exportType = 12;
+  string exportToId = 13;
+  string exportId = 14;
+  repeated string namespaces = 15;
+  repeated string exportedSchemaIds = 16;
+  repeated Pair environment = 17;
+  EState state = 18;
+  Date createdDate = 19;
+  Date lastModifiedDate = 20;
+  Date runDate = 21;
+  Date completedDate = 22;
+  AclContext aclContext = 23;
+  repeated Pair meta = 24;
 }
 message ExportWorkflowTask {
   string id = 1;
@@ -1011,17 +1020,18 @@ message ExportWorkflowTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string workflowId = 9;
-  string fileId = 10;
-  repeated Pair environment = 11;
-  EState state = 12;
-  Date createdDate = 13;
-  Date lastModifiedDate = 14;
-  Date runDate = 15;
-  Date completedDate = 16;
-  AclContext aclContext = 17;
-  repeated Pair meta = 18;
+  int32 size = 8;
+  string projectId = 9;
+  string workflowId = 10;
+  string fileId = 11;
+  repeated Pair environment = 12;
+  EState state = 13;
+  Date createdDate = 14;
+  Date lastModifiedDate = 15;
+  Date runDate = 16;
+  Date completedDate = 17;
+  AclContext aclContext = 18;
+  repeated Pair meta = 19;
 }
 message Factor {
   string name = 1;
@@ -1064,6 +1074,10 @@ message FileMetadata {
   string contentLanguage = 4;
   string md5Hash = 5;
 }
+message FileSummary {
+  int32 n = 1;
+  int32 size = 2;
+}
 message Filter {
   string logical = 1;
   bool not = 2;
@@ -1073,12 +1087,15 @@ message FilterExpr {
   string filterOp = 1;
   string stringValue = 2;
   Factor factor = 3;
+  repeated PreProcessor preProcessors = 4;
 }
 message FilterExpr2d {
   string filterOp = 1;
   string stringValue = 2;
   Factor factor = 3;
-  Factor factor2 = 4;
+  repeated PreProcessor preProcessors = 4;
+  Factor factor2 = 5;
+  repeated PreProcessor preProcessors2 = 6;
 }
 message FilterTopExpr {
 }
@@ -1187,14 +1204,15 @@ message GitProjectTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  repeated Pair environment = 8;
-  EState state = 9;
-  Date createdDate = 10;
-  Date lastModifiedDate = 11;
-  Date runDate = 12;
-  Date completedDate = 13;
-  AclContext aclContext = 14;
-  repeated Pair meta = 15;
+  int32 size = 8;
+  repeated Pair environment = 9;
+  EState state = 10;
+  Date createdDate = 11;
+  Date lastModifiedDate = 12;
+  Date runDate = 13;
+  Date completedDate = 14;
+  AclContext aclContext = 15;
+  repeated Pair meta = 16;
 }
 message GlTask {
   string id = 1;
@@ -1204,15 +1222,22 @@ message GlTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string glQuery = 8;
-  repeated Pair environment = 9;
-  EState state = 10;
-  Date createdDate = 11;
-  Date lastModifiedDate = 12;
-  Date runDate = 13;
-  Date completedDate = 14;
-  AclContext aclContext = 15;
-  repeated Pair meta = 16;
+  int32 size = 8;
+  int32 split = 9;
+  double xCellResolution = 10;
+  double yCellResolution = 11;
+  int32 layer = 12;
+  repeated Pair environment = 13;
+  EState state = 14;
+  Date createdDate = 15;
+  Date lastModifiedDate = 16;
+  Date runDate = 17;
+  Date completedDate = 18;
+  AclContext aclContext = 19;
+  repeated Pair meta = 20;
+  CubeQueryTask cubeQueryTask = 21;
+  repeated EPalette palettes = 22;
+  Rectangle range = 23;
 }
 message GraphicalFactor {
   Factor factor = 1;
@@ -1248,33 +1273,11 @@ message ImportGitDatasetTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string version = 9;
-  string gitToken = 10;
-  string schemaId = 11;
-  repeated Pair environment = 12;
-  EState state = 13;
-  Date createdDate = 14;
-  Date lastModifiedDate = 15;
-  Date runDate = 16;
-  Date completedDate = 17;
-  AclContext aclContext = 18;
-  repeated Pair meta = 19;
-  Url url = 20;
-}
-message ImportGitWorkflowTask {
-  string id = 1;
-  bool isDeleted = 2;
-  string rev = 3;
-  double duration = 4;
-  string owner = 5;
-  string taskHash = 6;
-  string channelId = 7;
-  string projectId = 8;
-  string fileId = 9;
-  string workflowId = 10;
+  int32 size = 8;
+  string projectId = 9;
+  string version = 10;
   string gitToken = 11;
-  string version = 12;
+  string schemaId = 12;
   repeated Pair environment = 13;
   EState state = 14;
   Date createdDate = 15;
@@ -1285,6 +1288,30 @@ message ImportGitWorkflowTask {
   repeated Pair meta = 20;
   Url url = 21;
 }
+message ImportGitWorkflowTask {
+  string id = 1;
+  bool isDeleted = 2;
+  string rev = 3;
+  double duration = 4;
+  string owner = 5;
+  string taskHash = 6;
+  string channelId = 7;
+  int32 size = 8;
+  string projectId = 9;
+  string fileId = 10;
+  string workflowId = 11;
+  string gitToken = 12;
+  string version = 13;
+  repeated Pair environment = 14;
+  EState state = 15;
+  Date createdDate = 16;
+  Date lastModifiedDate = 17;
+  Date runDate = 18;
+  Date completedDate = 19;
+  AclContext aclContext = 20;
+  repeated Pair meta = 21;
+  Url url = 22;
+}
 message ImportWorkflowTask {
   string id = 1;
   bool isDeleted = 2;
@@ -1293,18 +1320,19 @@ message ImportWorkflowTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string fileId = 9;
-  string workflowId = 10;
-  string gitToken = 11;
-  repeated Pair environment = 12;
-  EState state = 13;
-  Date createdDate = 14;
-  Date lastModifiedDate = 15;
-  Date runDate = 16;
-  Date completedDate = 17;
-  AclContext aclContext = 18;
-  repeated Pair meta = 19;
+  int32 size = 8;
+  string projectId = 9;
+  string fileId = 10;
+  string workflowId = 11;
+  string gitToken = 12;
+  repeated Pair environment = 13;
+  EState state = 14;
+  Date createdDate = 15;
+  Date lastModifiedDate = 16;
+  Date runDate = 17;
+  Date completedDate = 18;
+  AclContext aclContext = 19;
+  repeated Pair meta = 20;
 }
 message InMemoryRelation {
   string id = 1;
@@ -1368,14 +1396,15 @@ message LibraryTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  repeated Pair environment = 8;
-  EState state = 9;
-  Date createdDate = 10;
-  Date lastModifiedDate = 11;
-  Date runDate = 12;
-  Date completedDate = 13;
-  AclContext aclContext = 14;
-  repeated Pair meta = 15;
+  int32 size = 8;
+  repeated Pair environment = 9;
+  EState state = 10;
+  Date createdDate = 11;
+  Date lastModifiedDate = 12;
+  Date runDate = 13;
+  Date completedDate = 14;
+  AclContext aclContext = 15;
+  repeated Pair meta = 16;
 }
 message Link {
   string id = 1;
@@ -1656,15 +1685,16 @@ message ProjectTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  repeated Pair environment = 9;
-  EState state = 10;
-  Date createdDate = 11;
-  Date lastModifiedDate = 12;
-  Date runDate = 13;
-  Date completedDate = 14;
-  AclContext aclContext = 15;
-  repeated Pair meta = 16;
+  int32 size = 8;
+  string projectId = 9;
+  repeated Pair environment = 10;
+  EState state = 11;
+  Date createdDate = 12;
+  Date lastModifiedDate = 13;
+  Date runDate = 14;
+  Date completedDate = 15;
+  AclContext aclContext = 16;
+  repeated Pair meta = 17;
 }
 message Properties {
   repeated EProperty properties = 1;
@@ -1812,21 +1842,22 @@ message RunComputationTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  bool removeOnGC = 9;
-  repeated string schemaIds = 10;
-  string parentTaskId = 11;
-  string fileResultId = 12;
-  repeated Pair environment = 13;
-  EState state = 14;
-  Date createdDate = 15;
-  Date lastModifiedDate = 16;
-  Date runDate = 17;
-  Date completedDate = 18;
-  AclContext aclContext = 19;
-  repeated Pair meta = 20;
-  CubeQuery query = 21;
-  ERelation computedRelation = 22;
+  int32 size = 8;
+  string projectId = 9;
+  bool removeOnGC = 10;
+  repeated string schemaIds = 11;
+  string parentTaskId = 12;
+  string fileResultId = 13;
+  repeated Pair environment = 14;
+  EState state = 15;
+  Date createdDate = 16;
+  Date lastModifiedDate = 17;
+  Date runDate = 18;
+  Date completedDate = 19;
+  AclContext aclContext = 20;
+  repeated Pair meta = 21;
+  CubeQuery query = 22;
+  ERelation computedRelation = 23;
 }
 message RunProfile {
   string name = 1;
@@ -1847,18 +1878,19 @@ message RunWebAppTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string operatorId = 9;
-  string cubeQueryTaskId = 10;
-  repeated Pair environment = 11;
-  EState state = 12;
-  Date createdDate = 13;
-  Date lastModifiedDate = 14;
-  Date runDate = 15;
-  Date completedDate = 16;
-  AclContext aclContext = 17;
-  repeated Pair meta = 18;
-  Url url = 19;
+  int32 size = 8;
+  string projectId = 9;
+  string operatorId = 10;
+  string cubeQueryTaskId = 11;
+  repeated Pair environment = 12;
+  EState state = 13;
+  Date createdDate = 14;
+  Date lastModifiedDate = 15;
+  Date runDate = 16;
+  Date completedDate = 17;
+  AclContext aclContext = 18;
+  repeated Pair meta = 19;
+  Url url = 20;
 }
 message RunWorkflowTask {
   string id = 1;
@@ -1868,17 +1900,18 @@ message RunWorkflowTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string workflowId = 9;
-  string workflowRev = 10;
-  repeated Pair environment = 11;
-  EState state = 12;
-  Date createdDate = 13;
-  Date lastModifiedDate = 14;
-  Date runDate = 15;
-  Date completedDate = 16;
-  AclContext aclContext = 17;
-  repeated Pair meta = 18;
+  int32 size = 8;
+  string projectId = 9;
+  string workflowId = 10;
+  string workflowRev = 11;
+  repeated Pair environment = 12;
+  EState state = 13;
+  Date createdDate = 14;
+  Date lastModifiedDate = 15;
+  Date runDate = 16;
+  Date completedDate = 17;
+  AclContext aclContext = 18;
+  repeated Pair meta = 19;
 }
 message RunningDependentState {
 }
@@ -1892,21 +1925,22 @@ message SaveComputationResultTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  bool removeOnGC = 9;
-  repeated string schemaIds = 10;
-  string parentTaskId = 11;
-  string fileResultId = 12;
-  repeated Pair environment = 13;
-  EState state = 14;
-  Date createdDate = 15;
-  Date lastModifiedDate = 16;
-  Date runDate = 17;
-  Date completedDate = 18;
-  AclContext aclContext = 19;
-  repeated Pair meta = 20;
-  CubeQuery query = 21;
-  ERelation computedRelation = 22;
+  int32 size = 8;
+  string projectId = 9;
+  bool removeOnGC = 10;
+  repeated string schemaIds = 11;
+  string parentTaskId = 12;
+  string fileResultId = 13;
+  repeated Pair environment = 14;
+  EState state = 15;
+  Date createdDate = 16;
+  Date lastModifiedDate = 17;
+  Date runDate = 18;
+  Date completedDate = 19;
+  AclContext aclContext = 20;
+  repeated Pair meta = 21;
+  CubeQuery query = 22;
+  ERelation computedRelation = 23;
 }
 message Schema {
   string id = 1;
@@ -1921,14 +1955,15 @@ message Schema {
   string folderId = 10;
   int32 nRows = 11;
   string dataDirectory = 12;
-  Acl acl = 13;
-  Date createdDate = 14;
-  Date lastModifiedDate = 15;
-  repeated Url urls = 16;
-  repeated Pair meta = 17;
-  Url url = 18;
-  repeated EColumnSchema columns = 19;
-  ERelation relation = 20;
+  int32 size = 13;
+  Acl acl = 14;
+  Date createdDate = 15;
+  Date lastModifiedDate = 16;
+  repeated Url urls = 17;
+  repeated Pair meta = 18;
+  Url url = 19;
+  repeated EColumnSchema columns = 20;
+  ERelation relation = 21;
 }
 message SearchResult {
   int32 total_rows = 1;
@@ -1946,14 +1981,15 @@ message ShinyOperator {
   bool isPublic = 8;
   string path = 9;
   bool isViewOnly = 10;
-  Acl acl = 11;
-  Date createdDate = 12;
-  Date lastModifiedDate = 13;
-  repeated Url urls = 14;
-  repeated Pair meta = 15;
-  Url url = 16;
-  repeated EProperty properties = 17;
-  OperatorSpec operatorSpec = 18;
+  string entryType = 11;
+  Acl acl = 12;
+  Date createdDate = 13;
+  Date lastModifiedDate = 14;
+  repeated Url urls = 15;
+  repeated Pair meta = 16;
+  Url url = 17;
+  repeated EProperty properties = 18;
+  OperatorSpec operatorSpec = 19;
 }
 message SimpleRelation {
   string id = 1;
@@ -2031,6 +2067,7 @@ message Summary {
   TableSummary computedTableSummary = 2;
   TableSummary queryTableSummary = 3;
   TaskSummary taskSummary = 4;
+  FileSummary fileSummary = 5;
 }
 message Table {
   int32 nRows = 1;
@@ -2068,14 +2105,15 @@ message TableSchema {
   string folderId = 10;
   int32 nRows = 11;
   string dataDirectory = 12;
-  Acl acl = 13;
-  Date createdDate = 14;
-  Date lastModifiedDate = 15;
-  repeated Url urls = 16;
-  repeated Pair meta = 17;
-  Url url = 18;
-  repeated EColumnSchema columns = 19;
-  ERelation relation = 20;
+  int32 size = 13;
+  Acl acl = 14;
+  Date createdDate = 15;
+  Date lastModifiedDate = 16;
+  repeated Url urls = 17;
+  repeated Pair meta = 18;
+  Url url = 19;
+  repeated EColumnSchema columns = 20;
+  ERelation relation = 21;
 }
 message TableStep {
   string id = 1;
@@ -2089,7 +2127,8 @@ message TableStep {
   TableStepModel model = 9;
 }
 message TableStepModel {
-  ERelation relation = 1;
+  string filterSelector = 1;
+  ERelation relation = 2;
 }
 message TableSummary {
   int32 n = 1;
@@ -2105,14 +2144,15 @@ message Task {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  repeated Pair environment = 8;
-  EState state = 9;
-  Date createdDate = 10;
-  Date lastModifiedDate = 11;
-  Date runDate = 12;
-  Date completedDate = 13;
-  AclContext aclContext = 14;
-  repeated Pair meta = 15;
+  int32 size = 8;
+  repeated Pair environment = 9;
+  EState state = 10;
+  Date createdDate = 11;
+  Date lastModifiedDate = 12;
+  Date runDate = 13;
+  Date completedDate = 14;
+  AclContext aclContext = 15;
+  repeated Pair meta = 16;
 }
 message TaskDataEvent {
   string id = 1;
@@ -2158,6 +2198,7 @@ message TaskStateEvent {
 message TaskSummary {
   int32 n = 1;
   double duration = 2;
+  int32 size = 3;
 }
 message TaxId {
   string type = 1;
@@ -2197,17 +2238,18 @@ message TestOperatorTask {
   string owner = 5;
   string taskHash = 6;
   string channelId = 7;
-  string projectId = 8;
-  string operatorId = 9;
-  bool testRequired = 10;
-  repeated Pair environment = 11;
-  EState state = 12;
-  Date createdDate = 13;
-  Date lastModifiedDate = 14;
-  Date runDate = 15;
-  Date completedDate = 16;
-  AclContext aclContext = 17;
-  repeated Pair meta = 18;
+  int32 size = 8;
+  string projectId = 9;
+  string operatorId = 10;
+  bool testRequired = 11;
+  repeated Pair environment = 12;
+  EState state = 13;
+  Date createdDate = 14;
+  Date lastModifiedDate = 15;
+  Date runDate = 16;
+  Date completedDate = 17;
+  AclContext aclContext = 18;
+  repeated Pair meta = 19;
 }
 message Token {
   string userId = 1;
@@ -2317,14 +2359,15 @@ message WebAppOperator {
   bool isPublic = 8;
   string path = 9;
   bool isViewOnly = 10;
-  Acl acl = 11;
-  Date createdDate = 12;
-  Date lastModifiedDate = 13;
-  repeated Url urls = 14;
-  repeated Pair meta = 15;
-  Url url = 16;
-  repeated EProperty properties = 17;
-  OperatorSpec operatorSpec = 18;
+  string entryType = 11;
+  Acl acl = 12;
+  Date createdDate = 13;
+  Date lastModifiedDate = 14;
+  repeated Url urls = 15;
+  repeated Pair meta = 16;
+  Url url = 17;
+  repeated EProperty properties = 18;
+  OperatorSpec operatorSpec = 19;
 }
 message WhereRelation {
   string id = 1;

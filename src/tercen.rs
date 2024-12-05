@@ -1254,37 +1254,39 @@ pub struct CsvTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
-    pub file_document_id: ::prost::alloc::string::String,
+    pub project_id: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
-    pub schema_id: ::prost::alloc::string::String,
+    pub file_document_id: ::prost::alloc::string::String,
     #[prost(string, tag = "11")]
-    pub value_name: ::prost::alloc::string::String,
+    pub schema_id: ::prost::alloc::string::String,
     #[prost(string, tag = "12")]
+    pub value_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
     pub variable_name: ::prost::alloc::string::String,
-    #[prost(string, repeated, tag = "13")]
+    #[prost(string, repeated, tag = "14")]
     pub gather_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(message, repeated, tag = "14")]
+    #[prost(message, repeated, tag = "15")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "15")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "16")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "17")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "18")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "19")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "20")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "21")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "21")]
+    #[prost(message, repeated, tag = "22")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "22")]
-    pub schema: ::core::option::Option<ESchema>,
     #[prost(message, optional, tag = "23")]
+    pub schema: ::core::option::Option<ESchema>,
+    #[prost(message, optional, tag = "24")]
     pub params: ::core::option::Option<CsvParserParam>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1457,35 +1459,37 @@ pub struct ComputationTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(string, tag = "9")]
     pub project_id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "9")]
+    #[prost(bool, tag = "10")]
     pub remove_on_gc: bool,
-    #[prost(string, repeated, tag = "10")]
+    #[prost(string, repeated, tag = "11")]
     pub schema_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag = "11")]
-    pub parent_task_id: ::prost::alloc::string::String,
     #[prost(string, tag = "12")]
+    pub parent_task_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
     pub file_result_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "13")]
+    #[prost(message, repeated, tag = "14")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "14")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "15")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "16")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "18")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "19")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "20")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "20")]
+    #[prost(message, repeated, tag = "21")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "21")]
-    pub query: ::core::option::Option<CubeQuery>,
     #[prost(message, optional, tag = "22")]
+    pub query: ::core::option::Option<CubeQuery>,
+    #[prost(message, optional, tag = "23")]
     pub computed_relation: ::core::option::Option<ERelation>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1515,23 +1519,25 @@ pub struct ComputedTableSchema {
     pub n_rows: i32,
     #[prost(string, tag = "12")]
     pub data_directory: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "13")]
-    pub acl: ::core::option::Option<Acl>,
+    #[prost(int32, tag = "13")]
+    pub size: i32,
     #[prost(message, optional, tag = "14")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "15")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "16")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "16")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "17")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "18")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "18")]
+    #[prost(message, optional, tag = "19")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "19")]
+    #[prost(message, repeated, tag = "20")]
     pub columns: ::prost::alloc::vec::Vec<EColumnSchema>,
-    #[prost(message, optional, tag = "20")]
-    pub relation: ::core::option::Option<ERelation>,
     #[prost(message, optional, tag = "21")]
+    pub relation: ::core::option::Option<ERelation>,
+    #[prost(message, optional, tag = "22")]
     pub query: ::core::option::Option<CubeQuery>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1559,31 +1565,33 @@ pub struct CreateGitOperatorTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub version: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
-    pub operator_id: ::prost::alloc::string::String,
+    pub version: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
+    pub operator_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
     pub git_token: ::prost::alloc::string::String,
-    #[prost(bool, tag = "11")]
+    #[prost(bool, tag = "12")]
     pub test_required: bool,
-    #[prost(message, repeated, tag = "12")]
+    #[prost(message, repeated, tag = "13")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "13")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "15")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "18")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "19")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "19")]
+    #[prost(message, repeated, tag = "20")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "20")]
+    #[prost(message, optional, tag = "21")]
     pub url: ::core::option::Option<Url>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1719,27 +1727,29 @@ pub struct CubeQueryTableSchema {
     pub n_rows: i32,
     #[prost(string, tag = "12")]
     pub data_directory: ::prost::alloc::string::String,
-    #[prost(string, tag = "13")]
-    pub query_hash: ::prost::alloc::string::String,
+    #[prost(int32, tag = "13")]
+    pub size: i32,
     #[prost(string, tag = "14")]
+    pub query_hash: ::prost::alloc::string::String,
+    #[prost(string, tag = "15")]
     pub query_table_type: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "15")]
-    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "16")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "17")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "18")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "19")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "20")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "20")]
+    #[prost(message, optional, tag = "21")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "21")]
+    #[prost(message, repeated, tag = "22")]
     pub columns: ::prost::alloc::vec::Vec<EColumnSchema>,
-    #[prost(message, optional, tag = "22")]
-    pub relation: ::core::option::Option<ERelation>,
     #[prost(message, optional, tag = "23")]
+    pub relation: ::core::option::Option<ERelation>,
+    #[prost(message, optional, tag = "24")]
     pub query: ::core::option::Option<CubeQuery>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1759,29 +1769,31 @@ pub struct CubeQueryTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(string, tag = "9")]
     pub project_id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "9")]
+    #[prost(bool, tag = "10")]
     pub remove_on_gc: bool,
-    #[prost(string, repeated, tag = "10")]
+    #[prost(string, repeated, tag = "11")]
     pub schema_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(message, repeated, tag = "11")]
+    #[prost(message, repeated, tag = "12")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "12")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "13")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "15")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "18")]
+    #[prost(message, repeated, tag = "19")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "19")]
+    #[prost(message, optional, tag = "20")]
     pub query: ::core::option::Option<CubeQuery>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1890,22 +1902,24 @@ pub struct DockerWebAppOperator {
     #[prost(bool, tag = "10")]
     pub is_view_only: bool,
     #[prost(string, tag = "11")]
+    pub entry_type: ::prost::alloc::string::String,
+    #[prost(string, tag = "12")]
     pub container: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "12")]
-    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "13")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "14")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "15")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "15")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "16")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "17")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "17")]
+    #[prost(message, optional, tag = "18")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "18")]
+    #[prost(message, repeated, tag = "19")]
     pub properties: ::prost::alloc::vec::Vec<EProperty>,
-    #[prost(message, optional, tag = "19")]
+    #[prost(message, optional, tag = "20")]
     pub operator_spec: ::core::option::Option<OperatorSpec>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1970,7 +1984,9 @@ pub struct EnumeratedProperty {
     pub description: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub default_value: ::prost::alloc::string::String,
-    #[prost(string, repeated, tag = "4")]
+    #[prost(bool, tag = "4")]
+    pub is_single_selection: bool,
+    #[prost(string, repeated, tag = "5")]
     pub values: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -2033,37 +2049,39 @@ pub struct ExportTableTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
+    pub project_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
     pub export_name: ::prost::alloc::string::String,
-    #[prost(string, repeated, tag = "10")]
+    #[prost(string, repeated, tag = "11")]
     pub schema_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag = "11")]
-    pub export_type: ::prost::alloc::string::String,
     #[prost(string, tag = "12")]
-    pub export_to_id: ::prost::alloc::string::String,
+    pub export_type: ::prost::alloc::string::String,
     #[prost(string, tag = "13")]
+    pub export_to_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "14")]
     pub export_id: ::prost::alloc::string::String,
-    #[prost(string, repeated, tag = "14")]
-    pub namespaces: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(string, repeated, tag = "15")]
+    pub namespaces: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "16")]
     pub exported_schema_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(message, repeated, tag = "16")]
+    #[prost(message, repeated, tag = "17")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "17")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "18")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "19")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "20")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "21")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "22")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "23")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "23")]
+    #[prost(message, repeated, tag = "24")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -2083,27 +2101,29 @@ pub struct ExportWorkflowTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
-    pub workflow_id: ::prost::alloc::string::String,
+    pub project_id: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
+    pub workflow_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
     pub file_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "11")]
+    #[prost(message, repeated, tag = "12")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "12")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "13")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "15")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "18")]
+    #[prost(message, repeated, tag = "19")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -2190,6 +2210,14 @@ pub struct FileMetadata {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileSummary {
+    #[prost(int32, tag = "1")]
+    pub n: i32,
+    #[prost(int32, tag = "2")]
+    pub size: i32,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Filter {
     #[prost(string, tag = "1")]
     pub logical: ::prost::alloc::string::String,
@@ -2207,6 +2235,8 @@ pub struct FilterExpr {
     pub string_value: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
     pub factor: ::core::option::Option<Factor>,
+    #[prost(message, repeated, tag = "4")]
+    pub pre_processors: ::prost::alloc::vec::Vec<PreProcessor>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2217,8 +2247,12 @@ pub struct FilterExpr2d {
     pub string_value: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
     pub factor: ::core::option::Option<Factor>,
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, repeated, tag = "4")]
+    pub pre_processors: ::prost::alloc::vec::Vec<PreProcessor>,
+    #[prost(message, optional, tag = "5")]
     pub factor2: ::core::option::Option<Factor>,
+    #[prost(message, repeated, tag = "6")]
+    pub pre_processors2: ::prost::alloc::vec::Vec<PreProcessor>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2434,21 +2468,23 @@ pub struct GitProjectTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(message, repeated, tag = "9")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "9")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "10")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "11")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "12")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "13")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "14")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "15")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "15")]
+    #[prost(message, repeated, tag = "16")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -2468,24 +2504,38 @@ pub struct GlTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub gl_query: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "9")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(int32, tag = "9")]
+    pub split: i32,
+    #[prost(double, tag = "10")]
+    pub x_cell_resolution: f64,
+    #[prost(double, tag = "11")]
+    pub y_cell_resolution: f64,
+    #[prost(int32, tag = "12")]
+    pub layer: i32,
+    #[prost(message, repeated, tag = "13")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "10")]
-    pub state: ::core::option::Option<EState>,
-    #[prost(message, optional, tag = "11")]
-    pub created_date: ::core::option::Option<Date>,
-    #[prost(message, optional, tag = "12")]
-    pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, optional, tag = "13")]
-    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "14")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "15")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "16")]
+    pub last_modified_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "17")]
+    pub run_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "19")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "16")]
+    #[prost(message, repeated, tag = "20")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
+    #[prost(message, optional, tag = "21")]
+    pub cube_query_task: ::core::option::Option<CubeQueryTask>,
+    #[prost(message, repeated, tag = "22")]
+    pub palettes: ::prost::alloc::vec::Vec<EPalette>,
+    #[prost(message, optional, tag = "23")]
+    pub range: ::core::option::Option<Rectangle>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2556,60 +2606,16 @@ pub struct ImportGitDatasetTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
+    pub project_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
     pub version: ::prost::alloc::string::String,
-    #[prost(string, tag = "10")]
-    pub git_token: ::prost::alloc::string::String,
-    #[prost(string, tag = "11")]
-    pub schema_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "12")]
-    pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "13")]
-    pub state: ::core::option::Option<EState>,
-    #[prost(message, optional, tag = "14")]
-    pub created_date: ::core::option::Option<Date>,
-    #[prost(message, optional, tag = "15")]
-    pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, optional, tag = "16")]
-    pub run_date: ::core::option::Option<Date>,
-    #[prost(message, optional, tag = "17")]
-    pub completed_date: ::core::option::Option<Date>,
-    #[prost(message, optional, tag = "18")]
-    pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "19")]
-    pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "20")]
-    pub url: ::core::option::Option<Url>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ImportGitWorkflowTask {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "2")]
-    pub is_deleted: bool,
-    #[prost(string, tag = "3")]
-    pub rev: ::prost::alloc::string::String,
-    #[prost(double, tag = "4")]
-    pub duration: f64,
-    #[prost(string, tag = "5")]
-    pub owner: ::prost::alloc::string::String,
-    #[prost(string, tag = "6")]
-    pub task_hash: ::prost::alloc::string::String,
-    #[prost(string, tag = "7")]
-    pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "9")]
-    pub file_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "10")]
-    pub workflow_id: ::prost::alloc::string::String,
     #[prost(string, tag = "11")]
     pub git_token: ::prost::alloc::string::String,
     #[prost(string, tag = "12")]
-    pub version: ::prost::alloc::string::String,
+    pub schema_id: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "13")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
     #[prost(message, optional, tag = "14")]
@@ -2631,6 +2637,54 @@ pub struct ImportGitWorkflowTask {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ImportGitWorkflowTask {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(bool, tag = "2")]
+    pub is_deleted: bool,
+    #[prost(string, tag = "3")]
+    pub rev: ::prost::alloc::string::String,
+    #[prost(double, tag = "4")]
+    pub duration: f64,
+    #[prost(string, tag = "5")]
+    pub owner: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub task_hash: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub channel_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(string, tag = "9")]
+    pub project_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
+    pub file_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
+    pub workflow_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "12")]
+    pub git_token: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "14")]
+    pub environment: ::prost::alloc::vec::Vec<Pair>,
+    #[prost(message, optional, tag = "15")]
+    pub state: ::core::option::Option<EState>,
+    #[prost(message, optional, tag = "16")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "17")]
+    pub last_modified_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
+    pub run_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "19")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "20")]
+    pub acl_context: ::core::option::Option<AclContext>,
+    #[prost(message, repeated, tag = "21")]
+    pub meta: ::prost::alloc::vec::Vec<Pair>,
+    #[prost(message, optional, tag = "22")]
+    pub url: ::core::option::Option<Url>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ImportWorkflowTask {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
@@ -2646,29 +2700,31 @@ pub struct ImportWorkflowTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
-    pub file_id: ::prost::alloc::string::String,
+    pub project_id: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
-    pub workflow_id: ::prost::alloc::string::String,
+    pub file_id: ::prost::alloc::string::String,
     #[prost(string, tag = "11")]
+    pub workflow_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "12")]
     pub git_token: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "12")]
+    #[prost(message, repeated, tag = "13")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "13")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "15")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "18")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "19")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "19")]
+    #[prost(message, repeated, tag = "20")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -2795,21 +2851,23 @@ pub struct LibraryTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(message, repeated, tag = "9")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "9")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "10")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "11")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "12")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "13")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "14")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "15")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "15")]
+    #[prost(message, repeated, tag = "16")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3367,23 +3425,25 @@ pub struct ProjectTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(string, tag = "9")]
     pub project_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "9")]
+    #[prost(message, repeated, tag = "10")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "10")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "11")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "12")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "13")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "14")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "15")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "16")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "16")]
+    #[prost(message, repeated, tag = "17")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3679,35 +3739,37 @@ pub struct RunComputationTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(string, tag = "9")]
     pub project_id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "9")]
+    #[prost(bool, tag = "10")]
     pub remove_on_gc: bool,
-    #[prost(string, repeated, tag = "10")]
+    #[prost(string, repeated, tag = "11")]
     pub schema_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag = "11")]
-    pub parent_task_id: ::prost::alloc::string::String,
     #[prost(string, tag = "12")]
+    pub parent_task_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
     pub file_result_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "13")]
+    #[prost(message, repeated, tag = "14")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "14")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "15")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "16")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "18")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "19")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "20")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "20")]
+    #[prost(message, repeated, tag = "21")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "21")]
-    pub query: ::core::option::Option<CubeQuery>,
     #[prost(message, optional, tag = "22")]
+    pub query: ::core::option::Option<CubeQuery>,
+    #[prost(message, optional, tag = "23")]
     pub computed_relation: ::core::option::Option<ERelation>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3749,29 +3811,31 @@ pub struct RunWebAppTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
-    pub operator_id: ::prost::alloc::string::String,
+    pub project_id: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
+    pub operator_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
     pub cube_query_task_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "11")]
+    #[prost(message, repeated, tag = "12")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "12")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "13")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "15")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "18")]
+    #[prost(message, repeated, tag = "19")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "19")]
+    #[prost(message, optional, tag = "20")]
     pub url: ::core::option::Option<Url>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3791,27 +3855,29 @@ pub struct RunWorkflowTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
-    pub workflow_id: ::prost::alloc::string::String,
+    pub project_id: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
+    pub workflow_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
     pub workflow_rev: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "11")]
+    #[prost(message, repeated, tag = "12")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "12")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "13")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "15")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "18")]
+    #[prost(message, repeated, tag = "19")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3837,35 +3903,37 @@ pub struct SaveComputationResultTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(string, tag = "9")]
     pub project_id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "9")]
+    #[prost(bool, tag = "10")]
     pub remove_on_gc: bool,
-    #[prost(string, repeated, tag = "10")]
+    #[prost(string, repeated, tag = "11")]
     pub schema_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag = "11")]
-    pub parent_task_id: ::prost::alloc::string::String,
     #[prost(string, tag = "12")]
+    pub parent_task_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
     pub file_result_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "13")]
+    #[prost(message, repeated, tag = "14")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "14")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "15")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "16")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "18")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "19")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "20")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "20")]
+    #[prost(message, repeated, tag = "21")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "21")]
-    pub query: ::core::option::Option<CubeQuery>,
     #[prost(message, optional, tag = "22")]
+    pub query: ::core::option::Option<CubeQuery>,
+    #[prost(message, optional, tag = "23")]
     pub computed_relation: ::core::option::Option<ERelation>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3895,21 +3963,23 @@ pub struct Schema {
     pub n_rows: i32,
     #[prost(string, tag = "12")]
     pub data_directory: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "13")]
-    pub acl: ::core::option::Option<Acl>,
+    #[prost(int32, tag = "13")]
+    pub size: i32,
     #[prost(message, optional, tag = "14")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "15")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "16")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "16")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "17")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "18")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "18")]
+    #[prost(message, optional, tag = "19")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "19")]
+    #[prost(message, repeated, tag = "20")]
     pub columns: ::prost::alloc::vec::Vec<EColumnSchema>,
-    #[prost(message, optional, tag = "20")]
+    #[prost(message, optional, tag = "21")]
     pub relation: ::core::option::Option<ERelation>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -3945,21 +4015,23 @@ pub struct ShinyOperator {
     pub path: ::prost::alloc::string::String,
     #[prost(bool, tag = "10")]
     pub is_view_only: bool,
-    #[prost(message, optional, tag = "11")]
-    pub acl: ::core::option::Option<Acl>,
+    #[prost(string, tag = "11")]
+    pub entry_type: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "12")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "13")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "14")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "14")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "15")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "16")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "16")]
+    #[prost(message, optional, tag = "17")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "17")]
+    #[prost(message, repeated, tag = "18")]
     pub properties: ::prost::alloc::vec::Vec<EProperty>,
-    #[prost(message, optional, tag = "18")]
+    #[prost(message, optional, tag = "19")]
     pub operator_spec: ::core::option::Option<OperatorSpec>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4113,6 +4185,8 @@ pub struct Summary {
     pub query_table_summary: ::core::option::Option<TableSummary>,
     #[prost(message, optional, tag = "4")]
     pub task_summary: ::core::option::Option<TaskSummary>,
+    #[prost(message, optional, tag = "5")]
+    pub file_summary: ::core::option::Option<FileSummary>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -4187,21 +4261,23 @@ pub struct TableSchema {
     pub n_rows: i32,
     #[prost(string, tag = "12")]
     pub data_directory: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "13")]
-    pub acl: ::core::option::Option<Acl>,
+    #[prost(int32, tag = "13")]
+    pub size: i32,
     #[prost(message, optional, tag = "14")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "15")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "16")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "16")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "17")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "18")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "18")]
+    #[prost(message, optional, tag = "19")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "19")]
+    #[prost(message, repeated, tag = "20")]
     pub columns: ::prost::alloc::vec::Vec<EColumnSchema>,
-    #[prost(message, optional, tag = "20")]
+    #[prost(message, optional, tag = "21")]
     pub relation: ::core::option::Option<ERelation>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4229,7 +4305,9 @@ pub struct TableStep {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableStepModel {
-    #[prost(message, optional, tag = "1")]
+    #[prost(string, tag = "1")]
+    pub filter_selector: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
     pub relation: ::core::option::Option<ERelation>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4261,21 +4339,23 @@ pub struct Task {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "8")]
+    #[prost(int32, tag = "8")]
+    pub size: i32,
+    #[prost(message, repeated, tag = "9")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "9")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "10")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "11")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "12")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "13")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "14")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "15")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "15")]
+    #[prost(message, repeated, tag = "16")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4367,6 +4447,8 @@ pub struct TaskSummary {
     pub n: i32,
     #[prost(double, tag = "2")]
     pub duration: f64,
+    #[prost(int32, tag = "3")]
+    pub size: i32,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -4445,27 +4527,29 @@ pub struct TestOperatorTask {
     pub task_hash: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub channel_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "8")]
-    pub project_id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "8")]
+    pub size: i32,
     #[prost(string, tag = "9")]
+    pub project_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
     pub operator_id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "10")]
+    #[prost(bool, tag = "11")]
     pub test_required: bool,
-    #[prost(message, repeated, tag = "11")]
+    #[prost(message, repeated, tag = "12")]
     pub environment: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "12")]
-    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "13")]
-    pub created_date: ::core::option::Option<Date>,
+    pub state: ::core::option::Option<EState>,
     #[prost(message, optional, tag = "14")]
-    pub last_modified_date: ::core::option::Option<Date>,
+    pub created_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "15")]
-    pub run_date: ::core::option::Option<Date>,
+    pub last_modified_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "16")]
-    pub completed_date: ::core::option::Option<Date>,
+    pub run_date: ::core::option::Option<Date>,
     #[prost(message, optional, tag = "17")]
+    pub completed_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "18")]
     pub acl_context: ::core::option::Option<AclContext>,
-    #[prost(message, repeated, tag = "18")]
+    #[prost(message, repeated, tag = "19")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -4685,21 +4769,23 @@ pub struct WebAppOperator {
     pub path: ::prost::alloc::string::String,
     #[prost(bool, tag = "10")]
     pub is_view_only: bool,
-    #[prost(message, optional, tag = "11")]
-    pub acl: ::core::option::Option<Acl>,
+    #[prost(string, tag = "11")]
+    pub entry_type: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "12")]
-    pub created_date: ::core::option::Option<Date>,
+    pub acl: ::core::option::Option<Acl>,
     #[prost(message, optional, tag = "13")]
+    pub created_date: ::core::option::Option<Date>,
+    #[prost(message, optional, tag = "14")]
     pub last_modified_date: ::core::option::Option<Date>,
-    #[prost(message, repeated, tag = "14")]
-    pub urls: ::prost::alloc::vec::Vec<Url>,
     #[prost(message, repeated, tag = "15")]
+    pub urls: ::prost::alloc::vec::Vec<Url>,
+    #[prost(message, repeated, tag = "16")]
     pub meta: ::prost::alloc::vec::Vec<Pair>,
-    #[prost(message, optional, tag = "16")]
+    #[prost(message, optional, tag = "17")]
     pub url: ::core::option::Option<Url>,
-    #[prost(message, repeated, tag = "17")]
+    #[prost(message, repeated, tag = "18")]
     pub properties: ::prost::alloc::vec::Vec<EProperty>,
-    #[prost(message, optional, tag = "18")]
+    #[prost(message, optional, tag = "19")]
     pub operator_spec: ::core::option::Option<OperatorSpec>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
