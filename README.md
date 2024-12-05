@@ -4,9 +4,9 @@
 docker build -t tercen/gates_plotters_operator:latest .
 docker push tercen/gates_plotters_operator:latest
 
-git tag 0.2.2
-docker build -t tercen/gates_plotters_operator:0.2.2 .
-docker push tercen/gates_plotters_operator:0.2.2
+git tag 0.2.3
+docker build -t tercen/gates_plotters_operator:0.2.3 .
+docker push tercen/gates_plotters_operator:0.2.3
 
 
 docker inspect -f "{{ .Size }}" tercen/gates_plotters_operator:latest
