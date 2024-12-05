@@ -342,7 +342,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 
-    return Ok(());
+    // return Ok(());
 
     let mut file = File::open(filename).await?;
     let mut bytes = vec![];
