@@ -183,6 +183,27 @@ pub mod e_activity {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EcValues {
+    #[prost(oneof = "ec_values::Object", tags = "1, 2, 3, 4")]
+    pub object: ::core::option::Option<ec_values::Object>,
+}
+/// Nested message and enum types in `ECValues`.
+pub mod ec_values {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Object {
+        #[prost(message, tag = "1")]
+        Cvalues(super::CValues),
+        #[prost(message, tag = "2")]
+        F64values(super::F64Values),
+        #[prost(message, tag = "3")]
+        I32values(super::I32Values),
+        #[prost(message, tag = "4")]
+        Strvalues(super::StrValues),
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EChart {
     #[prost(oneof = "e_chart::Object", tags = "1, 2, 3, 4, 5, 6")]
     pub object: ::core::option::Option<e_chart::Object>,
@@ -763,7 +784,7 @@ pub mod er_library {
 pub struct ERelation {
     #[prost(
         oneof = "e_relation::Object",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
     )]
     pub object: ::core::option::Option<e_relation::Object>,
 }
@@ -783,18 +804,20 @@ pub mod e_relation {
         #[prost(message, tag = "5")]
         Inmemoryrelation(super::InMemoryRelation),
         #[prost(message, tag = "6")]
-        Referencerelation(::prost::alloc::boxed::Box<super::ReferenceRelation>),
+        Rangerelation(::prost::alloc::boxed::Box<super::RangeRelation>),
         #[prost(message, tag = "7")]
-        Relation(super::Relation),
+        Referencerelation(::prost::alloc::boxed::Box<super::ReferenceRelation>),
         #[prost(message, tag = "8")]
-        Renamerelation(::prost::alloc::boxed::Box<super::RenameRelation>),
+        Relation(super::Relation),
         #[prost(message, tag = "9")]
-        Simplerelation(super::SimpleRelation),
+        Renamerelation(::prost::alloc::boxed::Box<super::RenameRelation>),
         #[prost(message, tag = "10")]
-        Tablerelation(super::TableRelation),
+        Simplerelation(super::SimpleRelation),
         #[prost(message, tag = "11")]
-        Unionrelation(super::UnionRelation),
+        Tablerelation(super::TableRelation),
         #[prost(message, tag = "12")]
+        Unionrelation(super::UnionRelation),
+        #[prost(message, tag = "13")]
         Whererelation(::prost::alloc::boxed::Box<super::WhereRelation>),
     }
 }
@@ -1291,6 +1314,9 @@ pub struct CsvTask {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CValues {}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CanceledState {}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1395,6 +1421,8 @@ pub struct Column {
     pub values: ::prost::alloc::vec::Vec<u8>,
     #[prost(message, optional, tag = "7")]
     pub meta_data: ::core::option::Option<ColumnSchemaMetaData>,
+    #[prost(message, optional, tag = "8")]
+    pub c_values: ::core::option::Option<EcValues>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -2128,6 +2156,12 @@ pub struct ExportWorkflowTask {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct F64Values {
+    #[prost(double, repeated, tag = "1")]
+    pub values: ::prost::alloc::vec::Vec<f64>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Factor {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
@@ -2582,6 +2616,12 @@ pub struct GroupStep {
     pub state: ::core::option::Option<StepState>,
     #[prost(message, optional, tag = "12")]
     pub offset: ::core::option::Option<Point>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct I32Values {
+    #[prost(int32, repeated, tag = "1")]
+    pub values: ::prost::alloc::vec::Vec<i32>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -3622,6 +3662,18 @@ pub struct RampPalette {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RangeRelation {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(int32, tag = "2")]
+    pub start: i32,
+    #[prost(int32, tag = "3")]
+    pub len: i32,
+    #[prost(message, optional, boxed, tag = "4")]
+    pub relation: ::core::option::Option<::prost::alloc::boxed::Box<ERelation>>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Rectangle {
     #[prost(message, optional, tag = "1")]
     pub extent: ::core::option::Option<Point>,
@@ -4109,6 +4161,12 @@ pub struct StorageProfile {
     pub name: ::prost::alloc::string::String,
     #[prost(int32, tag = "2")]
     pub size: i32,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StrValues {
+    #[prost(string, repeated, tag = "1")]
+    pub values: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

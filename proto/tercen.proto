@@ -144,6 +144,14 @@ message EActivity {
     Activity activity = 1;
   }
 }
+message ECValues {
+  oneof object {
+    CValues cvalues = 1;
+    F64Values f64values = 2;
+    I32Values i32values = 3;
+    StrValues strvalues = 4;
+  }
+}
 message EChart {
   oneof object {
     Chart chart = 1;
@@ -384,13 +392,14 @@ message ERelation {
     GatherRelation gatherrelation = 3;
     GroupByRelation groupbyrelation = 4;
     InMemoryRelation inmemoryrelation = 5;
-    ReferenceRelation referencerelation = 6;
-    Relation relation = 7;
-    RenameRelation renamerelation = 8;
-    SimpleRelation simplerelation = 9;
-    TableRelation tablerelation = 10;
-    UnionRelation unionrelation = 11;
-    WhereRelation whererelation = 12;
+    RangeRelation rangerelation = 6;
+    ReferenceRelation referencerelation = 7;
+    Relation relation = 8;
+    RenameRelation renamerelation = 9;
+    SimpleRelation simplerelation = 10;
+    TableRelation tablerelation = 11;
+    UnionRelation unionrelation = 12;
+    WhereRelation whererelation = 13;
   }
 }
 message ESchema {
@@ -613,6 +622,8 @@ message CSVTask {
   ESchema schema = 23;
   CSVParserParam params = 24;
 }
+message CValues {
+}
 message CanceledState {
 }
 message CategoryPalette {
@@ -666,6 +677,7 @@ message Column {
   int32 size = 5;
   bytes values = 6;
   ColumnSchemaMetaData metaData = 7;
+  ECValues cValues = 8;
 }
 message ColumnPair {
   repeated string lColumns = 1;
@@ -1033,6 +1045,9 @@ message ExportWorkflowTask {
   AclContext aclContext = 18;
   repeated Pair meta = 19;
 }
+message F64Values {
+  repeated double values = 1;
+}
 message Factor {
   string name = 1;
   string type = 2;
@@ -1261,6 +1276,9 @@ message GroupStep {
   Rectangle rectangle = 10;
   StepState state = 11;
   Point offset = 12;
+}
+message I32Values {
+  repeated int32 values = 1;
 }
 message IdObject {
   string id = 1;
@@ -1783,6 +1801,12 @@ message RampPalette {
   repeated PropertyValue properties = 3;
   repeated DoubleColorElement doubleColorElements = 4;
 }
+message RangeRelation {
+  string id = 1;
+  int32 start = 2;
+  int32 len = 3;
+  ERelation relation = 4;
+}
 message Rectangle {
   Point extent = 1;
   Point topLeft = 2;
@@ -2029,6 +2053,9 @@ message StepState {
 message StorageProfile {
   string name = 1;
   int32 size = 2;
+}
+message StrValues {
+  repeated string values = 1;
 }
 message StringColorElement {
   int32 color = 1;
