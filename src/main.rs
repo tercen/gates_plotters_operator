@@ -216,6 +216,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .map(|x_factor| !x_factor.name.is_empty())
             .ok_or_else(|| TercenError::new("x_axis is required"))?;
 
+        let has_log_color_pre_processor = axis_query.preprocessors.iter().any(|p| p.r#type.eq("color"));
+
         let histogram_count_name = if has_x_axis { ".histogram_count" } else { ".y" };
 
         let mut stream = tercen_ctx
@@ -240,9 +242,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     .map(|c| *c)
                     .unwrap_or(0.0);
 
-                let histogram_count = data_frame_by_ci.column(histogram_count_name)?.f64()?
-                    .into_no_null_iter()
-                    .fold(old_histogram_count, |sum, value| sum + value);
+                let histogram_count = if has_log_color_pre_processor {
+                    data_frame_by_ci.column(histogram_count_name)?.f64()?
+                        .into_no_null_iter()
+                        .fold(old_histogram_count, |sum, value| sum + value.exp())
+                } else {
+                    data_frame_by_ci.column(histogram_count_name)?.f64()?
+                        .into_no_null_iter()
+                        .fold(old_histogram_count, |sum, value| sum + value)
+                };
+
+                // println!("histogram_count {} -- (current_ci, population_level) {:?}", histogram_count, (current_ci, population_level));
 
                 pop_count_previous.insert((current_ci, population_level), histogram_count);
             }
