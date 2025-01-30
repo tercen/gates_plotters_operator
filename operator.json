@@ -1,5 +1,5 @@
 {
-  "container":"tercen/gates_plotters_operator:0.2.5",
+  "container":"tercen/gates_plotters_operator:0.2.6",
   "name": "Gates overview",
   "description": "Plot gates overview.",
   "tags": [

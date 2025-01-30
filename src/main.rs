@@ -213,12 +213,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let has_x_axis = axis_query
             .x_axis
             .as_ref()
-            .map(|x_factor| !x_factor.name.is_empty())
+            .map(|factor| !factor.name.is_empty())
             .ok_or_else(|| TercenError::new("x_axis is required"))?;
+
+        let has_y_axis = axis_query
+            .y_axis
+            .as_ref()
+            .map(|factor| !factor.name.is_empty())
+            .ok_or_else(|| TercenError::new("y_axis is required"))?;
 
         let has_log_color_pre_processor = axis_query.preprocessors.iter().any(|p| p.r#type.eq("color"));
 
-        let histogram_count_name = if has_x_axis { ".histogram_count" } else { ".y" };
+        let histogram_count_name = if has_x_axis && has_y_axis { ".histogram_count" } else { ".y" };
 
         let mut stream = tercen_ctx
             .select_stream(&cube_query.qt_hash,
@@ -549,10 +555,16 @@ fn exec_cube_query(
         let has_x_axis = axis_query
             .x_axis
             .as_ref()
-            .map(|x_factor| !x_factor.name.is_empty())
+            .map(|factor| !factor.name.is_empty())
             .ok_or_else(|| TercenError::new("x_axis is required"))?;
 
-        if has_x_axis {
+        let has_y_axis = axis_query
+            .y_axis
+            .as_ref()
+            .map(|factor| !factor.name.is_empty())
+            .ok_or_else(|| TercenError::new("y_axis is required"))?;
+
+        if has_x_axis && has_y_axis {
             let histogram_count = qt_df.column(".histogram_count")?.f64()?
                 .into_no_null_iter()
                 .fold(0.0, |sum, value| sum + value);
@@ -694,6 +706,16 @@ impl AxisQueryWrapper {
         Ok(flag)
     }
 
+    fn has_y_axis(&self) -> Result<bool, Box<dyn Error>> {
+        let flag = self.axis_query
+            .y_axis
+            .as_ref()
+            .map(|x_factor| !x_factor.name.is_empty())
+            .ok_or_else(|| TercenError::new("y_axis is required"))?;
+
+        Ok(flag)
+    }
+
 
     fn x_pre_processors(&self) -> Result<Vec<PreProcess>, Box<dyn Error>> {
         self.pre_processors_type("x")
@@ -728,12 +750,12 @@ impl AxisQueryWrapper {
         Ok(y_axis_factor)
     }
 
-    fn histogram_count(&self) -> Result<f64, Box<dyn Error>> {
-        Ok(
-            self.column_f64(".histogram_count")?
-                .into_no_null_iter()
-                .fold(0.0, |sum, value| sum + value))
-    }
+    // fn histogram_count(&self) -> Result<f64, Box<dyn Error>> {
+    //     Ok(
+    //         self.column_f64(".histogram_count")?
+    //             .into_no_null_iter()
+    //             .fold(0.0, |sum, value| sum + value))
+    // }
 
     fn column_f64(&self, name: &str) -> PolarsResult<&Float64Chunked> {
         self.qt_df.column(name)?.f64()
@@ -780,10 +802,17 @@ fn create_palette_from_df(
     let has_x_axis = axis_query
         .x_axis
         .as_ref()
-        .map(|x_factor| !x_factor.name.is_empty())
+        .map(|factor| !factor.name.is_empty())
         .ok_or_else(|| TercenError::new("x_axis is required"))?;
 
-    if has_x_axis {
+    let has_y_axis = axis_query
+        .y_axis
+        .as_ref()
+        .map(|factor| !factor.name.is_empty())
+        .ok_or_else(|| TercenError::new("y_axis is required"))?;
+
+
+    if has_x_axis && has_y_axis {
         let hist_count = qt_df
             .column(".histogram_count")?
             .f64()?
@@ -826,7 +855,13 @@ async fn create_qt_df(
         .map(|x_factor| !x_factor.name.is_empty())
         .ok_or_else(|| TercenError::new("x_axis is required"))?;
 
-    let columns = if has_x_axis {
+    let has_y_axis = axis_query
+        .y_axis
+        .as_ref()
+        .map(|factor| !factor.name.is_empty())
+        .ok_or_else(|| TercenError::new("y_axis is required"))?;
+
+    let columns = if has_x_axis && has_y_axis {
         vec![
             ".histogram_count".to_string(),
             ".y_bin_size".to_string(),
@@ -837,7 +872,7 @@ async fn create_qt_df(
         ]
     } else {
         vec![
-            ".x_bin_size".to_string(),
+            // ".x_bin_size".to_string(),
             ".y".to_string(),
             ".x".to_string(),
             ".ci".to_string(),
@@ -900,7 +935,7 @@ fn draw_sample(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
     drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> {
-    if axis_query.has_x_axis()? {
+    if axis_query.has_x_axis()? && axis_query.has_y_axis()? {
         draw_sample_density(axis_query, pop_count_previous, drawing_area)
     } else {
         draw_sample_histogram(axis_query, pop_count_previous, drawing_area)
@@ -1032,9 +1067,8 @@ fn draw_sample_histogram(
     let x_range = axis_query.column_range_f64(".x")?; //x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
-    // Note x and y processor must be
-    let primary_x_coord = PreProcessorsRange::from_range(axis_query.y_pre_processors()?, x_range.clone())?;
-    let primary_y_coord = PreProcessorsRange::from_range(axis_query.x_pre_processors()?, y_range.clone())?;
+    let primary_x_coord = PreProcessorsRange::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
+    let primary_y_coord = PreProcessorsRange::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
 
     let primary_values = vec![(primary_x_coord.range.start, primary_y_coord.range.start),
                               (primary_x_coord.range.end, primary_y_coord.range.end)];
@@ -1054,9 +1088,10 @@ fn draw_sample_histogram(
         .build_cartesian_2d(primary_x_coord, primary_y_coord)?
         .set_secondary_coord(x_range, y_range);
 
+
     chart_builder.configure_mesh()
-        .x_desc(&y_axis_factor.name)
-        .y_desc("count")
+        .x_desc("count")
+        .y_desc(&y_axis_factor.name)
         .x_labels(10)
         .y_labels(10)
         .disable_mesh()
@@ -1075,8 +1110,13 @@ fn draw_sample_histogram(
     let yy = axis_query.column_f64(".y")?;
     let xx = axis_query.column_f64(".x")?;
 
-    chart_builder.draw_secondary_series(LineSeries::new(xx.into_no_null_iter().zip(yy.into_no_null_iter()), &color))?;
+    let mut xy = xx.into_no_null_iter()
+        .zip(yy.into_no_null_iter()).collect::<Vec<(f64, f64)>>();
 
+    // xy.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+    chart_builder.draw_secondary_series(LineSeries::new(xy, &color))?;
+    
     draw_shapes(axis_query, &mut chart_builder)?;
 
     Ok(())
@@ -1161,23 +1201,25 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
                                                shape_style))?;
             }
             Shape::YRange(shape) => {
-                if axis_query.axis_query.is_histogram() {
-                    cc.draw_series(LineSeries::new([(shape.range.start, 0.0),
-                                                       (shape.range.start, cc.y_range().end)],
-                                                   shape_style))?;
+                // if axis_query.axis_query.is_histogram() {
+                //     cc.draw_series(LineSeries::new([(shape.range.start, 0.0),
+                //                                        (shape.range.start, cc.y_range().end)],
+                //                                    shape_style))?;
+                // 
+                //     cc.draw_series(LineSeries::new([(shape.range.end, 0.0),
+                //                                        (shape.range.end, cc.y_range().end)],
+                //                                    shape_style))?;
+                // } else {
+                //     
+                // }
 
-                    cc.draw_series(LineSeries::new([(shape.range.end, 0.0),
-                                                       (shape.range.end, cc.y_range().end)],
-                                                   shape_style))?;
-                } else {
-                    cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.start),
-                                                       (cc.x_range().end, shape.range.start)],
-                                                   shape_style))?;
+                cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.start),
+                                                   (cc.x_range().end, shape.range.start)],
+                                               shape_style))?;
 
-                    cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.end),
-                                                       (cc.x_range().end, shape.range.end)],
-                                                   shape_style))?;
-                }
+                cc.draw_series(LineSeries::new([(cc.x_range().start, shape.range.end),
+                                                   (cc.x_range().end, shape.range.end)],
+                                               shape_style))?;
             }
             Shape::Polygon(shape) => {
                 if !shape.polygon.is_empty() {
