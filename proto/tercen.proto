@@ -115,10 +115,18 @@ message ReqConnect {
   string usernameOrEmail = 1;
   string password = 2;
 }
+message ReqConnect2 {
+  string domain = 1;
+  string usernameOrEmail = 2;
+  string password = 3;
+}
 message ReqGetServerVersion {
   string module = 1;
 }
 message RespConnect {
+  UserSession result = 1;
+}
+message RespConnect2 {
   UserSession result = 1;
 }
 message RespGetServerVersion {
@@ -130,6 +138,7 @@ service UserService {
   rpc update(EUser) returns (ResponseUpdate);
   rpc delete(DeleteRequest) returns (ResponseDelete);
   rpc connect( ReqConnect ) returns ( RespConnect );
+  rpc connect2( ReqConnect2 ) returns ( RespConnect2 );
   rpc getServerVersion( ReqGetServerVersion ) returns ( RespGetServerVersion );
 }
 service TeamService {
@@ -392,14 +401,15 @@ message ERelation {
     GatherRelation gatherrelation = 3;
     GroupByRelation groupbyrelation = 4;
     InMemoryRelation inmemoryrelation = 5;
-    RangeRelation rangerelation = 6;
-    ReferenceRelation referencerelation = 7;
-    Relation relation = 8;
-    RenameRelation renamerelation = 9;
-    SimpleRelation simplerelation = 10;
-    TableRelation tablerelation = 11;
-    UnionRelation unionrelation = 12;
-    WhereRelation whererelation = 13;
+    PairwiseRelation pairwiserelation = 6;
+    RangeRelation rangerelation = 7;
+    ReferenceRelation referencerelation = 8;
+    Relation relation = 9;
+    RenameRelation renamerelation = 10;
+    SimpleRelation simplerelation = 11;
+    TableRelation tablerelation = 12;
+    UnionRelation unionrelation = 13;
+    WhereRelation whererelation = 14;
   }
 }
 message ESchema {
@@ -1595,6 +1605,17 @@ message OutputPort {
 message Pair {
   string key = 1;
   string value = 2;
+}
+message PairwiseRelation {
+  string id = 1;
+  repeated string rowAttributes = 2;
+  repeated string colAttributes = 3;
+  repeated string labelAttributes = 4;
+  repeated string colorAttributes = 5;
+  string xAttribute = 6;
+  string yAttribute = 7;
+  string errorAttribute = 8;
+  ERelation relation = 9;
 }
 message Palette {
   int32 backcolor = 1;

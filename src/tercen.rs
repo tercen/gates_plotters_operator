@@ -150,6 +150,16 @@ pub struct ReqConnect {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReqConnect2 {
+    #[prost(string, tag = "1")]
+    pub domain: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub username_or_email: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub password: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReqGetServerVersion {
     #[prost(string, tag = "1")]
     pub module: ::prost::alloc::string::String,
@@ -157,6 +167,12 @@ pub struct ReqGetServerVersion {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RespConnect {
+    #[prost(message, optional, tag = "1")]
+    pub result: ::core::option::Option<UserSession>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RespConnect2 {
     #[prost(message, optional, tag = "1")]
     pub result: ::core::option::Option<UserSession>,
 }
@@ -784,7 +800,7 @@ pub mod er_library {
 pub struct ERelation {
     #[prost(
         oneof = "e_relation::Object",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14"
     )]
     pub object: ::core::option::Option<e_relation::Object>,
 }
@@ -804,20 +820,22 @@ pub mod e_relation {
         #[prost(message, tag = "5")]
         Inmemoryrelation(super::InMemoryRelation),
         #[prost(message, tag = "6")]
-        Rangerelation(::prost::alloc::boxed::Box<super::RangeRelation>),
+        Pairwiserelation(::prost::alloc::boxed::Box<super::PairwiseRelation>),
         #[prost(message, tag = "7")]
-        Referencerelation(::prost::alloc::boxed::Box<super::ReferenceRelation>),
+        Rangerelation(::prost::alloc::boxed::Box<super::RangeRelation>),
         #[prost(message, tag = "8")]
-        Relation(super::Relation),
+        Referencerelation(::prost::alloc::boxed::Box<super::ReferenceRelation>),
         #[prost(message, tag = "9")]
-        Renamerelation(::prost::alloc::boxed::Box<super::RenameRelation>),
+        Relation(super::Relation),
         #[prost(message, tag = "10")]
-        Simplerelation(super::SimpleRelation),
+        Renamerelation(::prost::alloc::boxed::Box<super::RenameRelation>),
         #[prost(message, tag = "11")]
-        Tablerelation(super::TableRelation),
+        Simplerelation(super::SimpleRelation),
         #[prost(message, tag = "12")]
-        Unionrelation(super::UnionRelation),
+        Tablerelation(super::TableRelation),
         #[prost(message, tag = "13")]
+        Unionrelation(super::UnionRelation),
+        #[prost(message, tag = "14")]
         Whererelation(::prost::alloc::boxed::Box<super::WhereRelation>),
     }
 }
@@ -3250,6 +3268,28 @@ pub struct Pair {
     pub key: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub value: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PairwiseRelation {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "2")]
+    pub row_attributes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "3")]
+    pub col_attributes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "4")]
+    pub label_attributes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "5")]
+    pub color_attributes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "6")]
+    pub x_attribute: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub y_attribute: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub error_attribute: ::prost::alloc::string::String,
+    #[prost(message, optional, boxed, tag = "9")]
+    pub relation: ::core::option::Option<::prost::alloc::boxed::Box<ERelation>>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -6229,6 +6269,28 @@ pub mod user_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("tercen.UserService", "connect"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn connect2(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReqConnect2>,
+        ) -> std::result::Result<tonic::Response<super::RespConnect2>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/tercen.UserService/connect2",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("tercen.UserService", "connect2"));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_server_version(
