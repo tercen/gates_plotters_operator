@@ -358,7 +358,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 
-    // return Ok(());
+    return Ok(());
 
     let mut file = File::open(filename).await?;
     let mut bytes = vec![];
@@ -1201,9 +1201,10 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
             }
             Shape::Quadrant(shape) => {
                 if shape.quadrant.eq("Q1") {
+                    // top left
                     let rec = Rectangle::new(
                         [
-                            (cc.x_range().start, cc.y_range().start),
+                            (cc.x_range().start, cc.y_range().end),
                             (shape.center.x, shape.center.y)
                         ],
                         shape_style,
@@ -1211,9 +1212,10 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
 
                     cc.draw_series([rec])?;
                 } else if shape.quadrant.eq("Q2") {
+                    // top right
                     let rec = Rectangle::new(
                         [
-                            (shape.center.x, cc.y_range().start),
+                            (shape.center.x, cc.y_range().end),
                             (cc.x_range().end, shape.center.y)
                         ],
                         shape_style,
@@ -1221,6 +1223,7 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
 
                     cc.draw_series([rec])?;
                 } else if shape.quadrant.eq("Q3") {
+                    // bottom right
                     let rec = Rectangle::new(
                         [
                             (shape.center.x, shape.center.y),
@@ -1230,6 +1233,7 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
                     );
                     cc.draw_series([rec])?;
                 } else if shape.quadrant.eq("Q4") {
+                    //bottom left
                     let rec = Rectangle::new(
                         [
                             (cc.x_range().start, shape.center.y),
