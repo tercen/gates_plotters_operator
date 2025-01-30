@@ -26,7 +26,7 @@ use plotters::prelude::*;
 use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
-
+use plotters::data::float::FloatPrettyPrinter;
 use polars::prelude::*;
 
 use tokio::fs::File;
@@ -776,17 +776,44 @@ impl AxisQueryWrapper {
     }
 
     fn total_pop(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
-        Ok(pop_count_previous
+        // Ok(pop_count_previous
+        //     .get(&(self.current_ci, 0))
+        //     .map(|v| *v)
+        //     .ok_or_else(|| TercenError::new("total_pop is required"))?)
+        
+        let tt = pop_count_previous
             .get(&(self.current_ci, 0))
-            .map(|v| *v)
-            .ok_or_else(|| TercenError::new("total_pop is required"))?)
+            .map(|v| *v);
+
+         match tt {
+             None => {
+                 Ok(0.0)
+             }
+             Some(v) => {
+                 Ok(v)
+             }
+         }
+         
     }
 
     fn histogram_count_with(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
-        Ok(pop_count_previous
+        // Ok(pop_count_previous
+        //     .get(&(self.current_ci, self.population_level))
+        //     .map(|v| *v)
+        //     .ok_or_else(|| TercenError::new("histogram_count is required"))?)
+
+        let tt = pop_count_previous
             .get(&(self.current_ci, self.population_level))
-            .map(|v| *v)
-            .ok_or_else(|| TercenError::new("histogram_count is required"))?)
+            .map(|v| *v);
+
+        match tt {
+            None => {
+                Ok(0.0)
+            }
+            Some(v) => {
+                Ok(v)
+            }
+        }
     }
 
     fn population_count(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Option<f64> {
@@ -988,8 +1015,18 @@ fn draw_sample_density(
         .x_labels(10)
         .y_labels(10)
         .disable_mesh()
-        .x_label_formatter(&|v| format!("{:.1}", v))
-        .y_label_formatter(&|v| format!("{:.1}", v))
+        .x_label_formatter(&|v| FloatPrettyPrinter {
+            allow_scientific: true,
+            min_decimal: 1,
+            max_decimal: 3,
+        }.print(*v))
+        .y_label_formatter(&|v| FloatPrettyPrinter {
+            allow_scientific: true,
+            min_decimal: 1,
+            max_decimal: 3,
+        }.print(*v))
+        // .x_label_formatter(&|v| format!("{:.1}", v))
+        // .y_label_formatter(&|v| format!("{:.1}", v))
         .draw()?;
 
     chart_builder
@@ -1063,6 +1100,7 @@ fn draw_sample_histogram(
     let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
 
     let y_axis_factor = axis_query.y_axis_factor()?;
+    let x_axis_factor = axis_query.x_axis_factor()?;
 
     let x_range = axis_query.column_range_f64(".x")?; //x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
@@ -1088,15 +1126,28 @@ fn draw_sample_histogram(
         .build_cartesian_2d(primary_x_coord, primary_y_coord)?
         .set_secondary_coord(x_range, y_range);
 
-
+    // let text_style = ("sans-serif", 20).with_color(RED).into_text_style(drawing_area) .transform(FontTransform::Rotate90);
+    
     chart_builder.configure_mesh()
-        .x_desc("count")
-        .y_desc(&y_axis_factor.name)
+        .x_desc(&x_axis_factor.name)
+        .y_desc("count")
         .x_labels(10)
         .y_labels(10)
         .disable_mesh()
-        .x_label_formatter(&|v| format!("{:.1}", v))
-        .y_label_formatter(&|v| format!("{:.1}", v))
+        // .x_label_style(text_style)
+        .x_label_formatter(&|v| FloatPrettyPrinter {
+            allow_scientific: true,
+            min_decimal: 1,
+            max_decimal: 5,
+        }.print(*v))
+        .y_label_formatter(&|v| FloatPrettyPrinter {
+            allow_scientific: false,
+            min_decimal: 0,
+            max_decimal: 5,
+        }.print(*v))
+
+        // .x_label_formatter(&|v| format!("{:.1}", v))
+        // .y_label_formatter(&|v| format!("{:.1}", v))
         .draw()?;
 
     chart_builder
@@ -1110,13 +1161,13 @@ fn draw_sample_histogram(
     let yy = axis_query.column_f64(".y")?;
     let xx = axis_query.column_f64(".x")?;
 
-    let mut xy = xx.into_no_null_iter()
+    let xy = xx.into_no_null_iter()
         .zip(yy.into_no_null_iter()).collect::<Vec<(f64, f64)>>();
 
     // xy.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
     chart_builder.draw_secondary_series(LineSeries::new(xy, &color))?;
-    
+
     draw_shapes(axis_query, &mut chart_builder)?;
 
     Ok(())
