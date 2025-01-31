@@ -27,6 +27,9 @@ use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
 use plotters::data::float::FloatPrettyPrinter;
+use polars::export::num::{Float, Pow};
+use polars::export::num::float::FloatCore;
+use polars::export::num::real::Real;
 use polars::prelude::*;
 
 use tokio::fs::File;
@@ -358,7 +361,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 
-    // return Ok(());
+    return Ok(());
 
     let mut file = File::open(filename).await?;
     let mut bytes = vec![];
@@ -471,7 +474,7 @@ async fn get_shape_tbl(ctx: &TercenContext) -> Result<DataFrame, Box<dyn Error>>
 
 fn get_sample_meta_factor(cube_query: CubeQuery) -> Result<MetaFactor, Box<dyn Error>> {
     let input_spec = get_input_spec(cube_query)?;
-    // println!("input_spec {:?}", &input_spec);
+    println!("input_spec {:?}", &input_spec);
 
     let sample_meta_factor = input_spec
         .meta_factors
@@ -780,20 +783,19 @@ impl AxisQueryWrapper {
         //     .get(&(self.current_ci, 0))
         //     .map(|v| *v)
         //     .ok_or_else(|| TercenError::new("total_pop is required"))?)
-        
+
         let tt = pop_count_previous
             .get(&(self.current_ci, 0))
             .map(|v| *v);
 
-         match tt {
-             None => {
-                 Ok(0.0)
-             }
-             Some(v) => {
-                 Ok(v)
-             }
-         }
-         
+        match tt {
+            None => {
+                Ok(0.0)
+            }
+            Some(v) => {
+                Ok(v)
+            }
+        }
     }
 
     fn histogram_count_with(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
@@ -981,6 +983,10 @@ fn draw_sample_density(
     let x_axis_factor = axis_query.x_axis_factor()?;
     let y_axis_factor = axis_query.y_axis_factor()?;
 
+    if x_axis_factor.name.eq("channel_trans.CD14") {
+        println!("{}", &x_axis_factor.name);
+    }
+
     let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
@@ -1012,23 +1018,24 @@ fn draw_sample_density(
     chart_builder.configure_mesh()
         .x_desc(&x_axis_factor.name)
         .y_desc(&y_axis_factor.name)
-        .x_labels(10)
-        .y_labels(10)
+        .x_labels(5)
+        .y_labels(7)
         .disable_mesh()
-        .x_label_formatter(&|v| FloatPrettyPrinter {
-            allow_scientific: true,
-            min_decimal: 1,
-            max_decimal: 3,
-        }.print(*v))
-        .y_label_formatter(&|v| FloatPrettyPrinter {
-            allow_scientific: true,
-            min_decimal: 1,
-            max_decimal: 3,
-        }.print(*v))
-        // .x_label_formatter(&|v| format!("{:.1}", v))
-        // .y_label_formatter(&|v| format!("{:.1}", v))
+        // .x_label_formatter(&|v| FloatPrettyPrinter {
+        //     allow_scientific: true,
+        //     min_decimal: 1,
+        //     max_decimal: 3,
+        // }.print(*v))
+        // .y_label_formatter(&|v| FloatPrettyPrinter {
+        //     allow_scientific: true,
+        //     min_decimal: 1,
+        //     max_decimal: 3,
+        // }.print(*v))
+        .x_label_formatter(&|v| format!("{:.precision$e}", v, precision = 1))
+        .y_label_formatter(&|v| format!("{:.precision$e}", v, precision = 1))
         .draw()?;
 
+ 
     chart_builder
         .configure_secondary_axes()
         .axis_style(secondary_color.clone())
@@ -1127,7 +1134,7 @@ fn draw_sample_histogram(
         .set_secondary_coord(x_range, y_range);
 
     // let text_style = ("sans-serif", 20).with_color(RED).into_text_style(drawing_area) .transform(FontTransform::Rotate90);
-    
+
     chart_builder.configure_mesh()
         .x_desc(&x_axis_factor.name)
         .y_desc("count")
@@ -1352,7 +1359,7 @@ impl PreProcessorsRange {
 
 impl AsRangedCoord for PreProcessorsRange {
     type CoordDescType = PreProcessorsCoord;
-    type Value = f64;
+    type Value = Tick;
 }
 
 impl From<PreProcessorsRange> for PreProcessorsCoord {
@@ -1533,82 +1540,258 @@ impl PreProcessorsCoord {
     }
 }
 
+
+#[derive(Debug)]
+struct Tick {
+    value: f64,
+    is_sub_tick: bool,
+}
+
+impl PreProcessorsCoord {
+    pub fn compute_tick_spacing(range: f64, max_ticks: u32) -> f64 {
+        if range == 0.0 {
+            return 1.0;
+        }
+
+        assert!(range > 0.0);
+
+        assert!(max_ticks > 0);
+
+        let temp_step = range / max_ticks as f64;
+
+        // get the magnitude of the step size
+        let mag = temp_step.log10().floor();
+        let mag_pow = 10.0f64.powf(mag);
+
+        // calculate most significant digit of the new step size
+        let mut mag_msd = (temp_step / mag_pow + 0.5).round();
+
+        // promote the MSD to either 1, 2, or 5
+        if mag_msd > 5.0 {
+            mag_msd = 10.0;
+        } else if mag_msd > 2.0 {
+            mag_msd = 5.0;
+        } else if mag_msd > 1.0 {
+            mag_msd = 2.0;
+        }
+
+        mag_msd * mag_pow
+    }
+
+    fn linear_ticks<Hint: KeyPointHint>(&self, hint: &Hint, min_value: f64, max_value: f64) -> Vec<Tick> {
+        if !min_value.is_finite() || !max_value.is_finite() {
+            return Vec::new();
+        }
+
+        if max_value - min_value == 0.0 {
+            return vec![Tick{value: min_value, is_sub_tick: false}];
+        }
+        assert!(min_value < max_value);
+
+        let tick_spacing = Self::compute_tick_spacing(max_value - min_value, hint.max_num_points() as u32);
+
+        if !tick_spacing.is_finite() {
+            return vec![];
+        }
+
+        if tick_spacing == 0.0 {
+            return vec![Tick{value: (max_value - min_value) / 2.0, is_sub_tick: false} ];
+        }
+
+        assert!(tick_spacing > 0.0);
+
+        let first_tick_value = (min_value / tick_spacing).floor() * tick_spacing;
+
+        let mut result = vec![Tick{value: first_tick_value, is_sub_tick: false}  ];
+
+        for i in 1..hint.max_num_points() {
+            result.push(Tick{value: first_tick_value + i as f64 * tick_spacing, is_sub_tick: false} );
+        }
+
+        result
+    }
+
+    fn log_ticks<Hint: KeyPointHint>(&self, hint: &Hint, min_mag: i32, max_mag: i32, min_value: f64, max_value: f64, sign: i32) -> Vec<Tick> {
+        let mut result = vec![];
+
+        for i in min_mag..max_mag {
+            let tick_value = 10.0.pow(i as f64) * sign as f64;
+            result.push(Tick{value: tick_value, is_sub_tick: false});
+        }
+
+        if sign < 0 {
+            result.reverse();
+        }
+
+        result
+    }
+    fn ticks<Hint: KeyPointHint>(&self, hint: Hint, min_value: f64, max_value: f64) -> Vec<Tick> {
+        if !self.is_log() {
+            return self.linear_ticks(&hint, min_value, max_value);
+        }
+
+        if !min_value.is_finite() || !max_value.is_finite() {
+            return Vec::new();
+        }
+
+        if (max_value - min_value) == 0.0 {
+            return self.linear_ticks(&hint, min_value, max_value);
+        }
+
+        let base = 10.0f64;
+        let base_ln = base.ln();
+
+        if min_value > 0.0 {
+            let mag_min = (min_value.ln() / base_ln).floor() as i32;
+            let mag_max = (max_value.ln() / base_ln).ceil() as i32;
+
+            if mag_max - mag_min < 2 {
+                self.linear_ticks(&hint, min_value, max_value)
+            } else {
+                self.log_ticks(&hint, mag_min, mag_max, min_value, max_value, 1)
+            }
+        } else if min_value == 0.0 {
+            let mag_max = (max_value.ln() / base_ln).ceil() as i32;
+            let mag_min = 0;
+            if mag_max < 2 {
+                self.linear_ticks(&hint, min_value, max_value)
+            } else {
+                self.log_ticks(&hint, mag_min, mag_max, min_value, max_value, 1)
+            }
+        } else if max_value == 0.0 {
+            let mag_min = ((-min_value).ln() / base_ln).ceil() as i32;
+            if mag_min.abs() < 2 {
+                self.linear_ticks(&hint, min_value, max_value)
+            } else {
+                self.log_ticks(&hint, 0, mag_min, min_value, max_value, -1)
+            }
+        } else if max_value < 0.0 {
+            let mag_min = ((-min_value).ln() / base_ln).ceil() as i32;
+            let mag_max = ((-max_value).ln() / base_ln).floor() as i32;
+
+            assert!(mag_min >= mag_max);
+
+            if mag_min - mag_max < 2 {
+                self.linear_ticks(&hint, min_value, max_value)
+            } else {
+                self.log_ticks(&hint, mag_max, mag_min, min_value, max_value, -1)
+            }
+        } else {
+            let mag_min = ((-min_value).ln() / base_ln).ceil() as i32;
+            let mag_max = ((max_value).ln() / base_ln).ceil() as i32;
+
+            if mag_min >= 2 || mag_max >= 2 {
+                let mut result = vec![];
+
+                result.extend(self.log_ticks(&hint, 0, mag_min, min_value, max_value, -1));
+
+                //yield _compute_tick(
+                //             0.0, transformedMinValue, transformedRange, codec.decoder);
+
+                result.extend(self.log_ticks(&hint, 0, mag_max, min_value, max_value, 1));
+
+                result
+            } else {
+                self.linear_ticks(&hint, min_value, max_value)
+            }
+        }
+    }
+}
+
+
 impl Ranged for PreProcessorsCoord {
     type FormatOption = DefaultFormatting;
-    type ValueType = f64;
+    type ValueType = Tick;
 
     fn map(&self, value: &Self::ValueType, limit: (i32, i32)) -> i32 {
         if self.is_log() {
-            let fv = self.value_to_f64(value);
+            let fv = self.value_to_f64(&value.value);
             let value_ln = self.decode(fv);
             self.linear.map(&value_ln, limit)
         } else {
-            self.linear.map(value, limit)
+            self.linear.map(&value.value, limit)
         }
     }
 
-    fn key_points<Hint: KeyPointHint>(&self, hint: Hint) -> Vec<f64> {
-        if self.is_log() {
-            let max_points = hint.max_num_points();
-
-            let base = 10.0f64;
-            let base_ln = base.ln();
-
-            let Range { mut start, mut end } = self.normalized;
-
-            if start > end {
-                std::mem::swap(&mut start, &mut end);
-            }
-
-            let bold_count = ((end / start).ln().abs() / base_ln).floor().max(1.0) as usize;
-
-            let light_density = if max_points < bold_count {
-                0
-            } else {
-                let density = 1 + (max_points - bold_count) / bold_count;
-                let mut exp = 1;
-                while exp * 10 <= density {
-                    exp *= 10;
-                }
-                exp - 1
-            };
-
-            let mut multiplier = base;
-            let mut cnt = 1;
-            while max_points < bold_count / cnt {
-                multiplier *= base;
-                cnt += 1;
-            }
-
-            let mut ret = vec![];
-            let mut val = (base).powf((start.ln() / base_ln).ceil());
-
-            while val <= end {
-                if !self.is_inf(val) {
-                    ret.push(self.f64_to_value(val));
-                }
-                for i in 1..=light_density {
-                    let v = val
-                        * (1.0
-                        + multiplier / f64::from(light_density as u32 + 1) * f64::from(i as u32));
-                    if v > end {
-                        break;
-                    }
-                    if !self.is_inf(val) {
-                        ret.push(self.f64_to_value(v));
-                    }
-                }
-                val *= multiplier;
-            }
-            ret
-        } else {
-            self.linear.key_points(hint)
+    fn key_points<Hint: KeyPointHint>(&self, hint: Hint) -> Vec<Tick> {
+        let Range { mut start, mut end } = self.normalized;
+        if start > end {
+            std::mem::swap(&mut start, &mut end);
         }
+        let mut max_points =  hint.max_num_points();
+        println!("key_points -- max_points {}", max_points);
+        // max_points = 5;
+        let result = self.ticks(max_points, start, end);
+        println!("key_points {:?}", result);
+        // result.into_iter().map(|t| t.value).collect()
+        result
     }
+    // fn key_points2<Hint: KeyPointHint>(&self, hint: Hint) -> Vec<f64> {
+    //     if self.is_log() {
+    //         let max_points = hint.max_num_points();
+    // 
+    //         let base = 10.0f64;
+    //         let base_ln = base.ln();
+    // 
+    //         let Range { mut start, mut end } = self.normalized;
+    // 
+    //         if start > end {
+    //             std::mem::swap(&mut start, &mut end);
+    //         }
+    // 
+    //         let bold_count = ((end / start).ln().abs() / base_ln).floor().max(1.0) as usize;
+    // 
+    //         let light_density = if max_points < bold_count {
+    //             0
+    //         } else {
+    //             let density = 1 + (max_points - bold_count) / bold_count;
+    //             let mut exp = 1;
+    //             while exp * 10 <= density {
+    //                 exp *= 10;
+    //             }
+    //             exp - 1
+    //         };
+    // 
+    //         let mut multiplier = base;
+    //         let mut cnt = 1;
+    //         while max_points < bold_count / cnt {
+    //             multiplier *= base;
+    //             cnt += 1;
+    //         }
+    // 
+    //         let mut ret = vec![];
+    //         let mut val = (base).powf((start.ln() / base_ln).ceil());
+    // 
+    //         while val <= end {
+    //             if !self.is_inf(val) {
+    //                 ret.push(self.f64_to_value(val));
+    //             }
+    //             for i in 1..=light_density {
+    //                 let v = val
+    //                     * (1.0
+    //                     + multiplier / f64::from(light_density as u32 + 1) * f64::from(i as u32));
+    //                 if v > end {
+    //                     break;
+    //                 }
+    //                 if !self.is_inf(val) {
+    //                     ret.push(self.f64_to_value(v));
+    //                 }
+    //             }
+    //             val *= multiplier;
+    //         }
+    //         ret
+    //     } else {
+    //         self.linear.key_points(hint)
+    //     }
+    // }
 
 
     fn range(&self) -> Range<Self::ValueType> {
-        self.logic.clone()
+        Range {
+            start: Tick {value: self.logic.start, is_sub_tick: false},
+            end: Tick {value: self.logic.end, is_sub_tick: false},
+        }
+        // self.logic.clone()
     }
 }
 
