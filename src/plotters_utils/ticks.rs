@@ -142,11 +142,11 @@ impl Ranged for PreProcessorsCoordTicks {
             std::mem::swap(&mut start, &mut end);
         }
         let mut max_points = hint.max_num_points();
-        println!("key_points -- max_points {}", max_points);
+        // println!("key_points -- max_points {}", max_points);
         // max_points = 5;
 
         let result = Tick::ticks(max_points, start, end, self.is_log());
-        println!("key_points {:?}", result);
+        // println!("key_points {:?}", result);
 
         if !self.generate_sub_ticks {
             result.into_iter().filter(|tick| !tick.is_sub_tick).collect()

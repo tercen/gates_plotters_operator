@@ -221,8 +221,8 @@ impl Tick {
                 let neg_ticks = Self::log_main_ticks(hint, 0, mag_min, min_value, max_value, -1);
                 let pos_ticks = Self::log_main_ticks(hint, 0, mag_max, min_value, max_value, 1);
 
-                println!("neg_ticks -- {:?}", neg_ticks);
-                println!("pos_ticks -- {:?}", pos_ticks);
+                // println!("neg_ticks -- {:?}", neg_ticks);
+                // println!("pos_ticks -- {:?}", pos_ticks);
 
                 let mut neg_ticks = VecDeque::from(neg_ticks);
                 let mut pos_ticks = VecDeque::from(pos_ticks);

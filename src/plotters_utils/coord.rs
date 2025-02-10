@@ -140,10 +140,10 @@ impl Ranged for PreProcessorsCoord {
             std::mem::swap(&mut start, &mut end);
         }
         let mut max_points = hint.max_num_points();
-        println!("key_points -- max_points {}", max_points);
+        // println!("key_points -- max_points {}", max_points);
         // max_points = 5;
         let result = Tick::ticks(max_points, start, end, self.is_log());
-        println!("key_points {:?}", result);
+        // println!("key_points {:?}", result);
         result.into_iter().map(|t| t.value).collect()
     }
     // fn key_points2<Hint: KeyPointHint>(&self, hint: Hint) -> Vec<f64> {

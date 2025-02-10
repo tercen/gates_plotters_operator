@@ -480,7 +480,7 @@ async fn get_shape_tbl(ctx: &TercenContext) -> Result<DataFrame, Box<dyn Error>>
 
 fn get_sample_meta_factor(cube_query: CubeQuery) -> Result<MetaFactor, Box<dyn Error>> {
     let input_spec = get_input_spec(cube_query)?;
-    println!("input_spec {:?}", &input_spec);
+    // println!("input_spec {:?}", &input_spec);
 
     let sample_meta_factor = input_spec
         .meta_factors
@@ -971,10 +971,6 @@ fn draw_sample_density(
     let x_axis_factor = axis_query.x_axis_factor()?;
     let y_axis_factor = axis_query.y_axis_factor()?;
 
-    if x_axis_factor.name.eq("channel_trans.CD14") {
-        println!("{}", &x_axis_factor.name);
-    }
-
     let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
@@ -1078,11 +1074,7 @@ fn draw_sample_density_ticks(
 
     let x_axis_factor = axis_query.x_axis_factor()?;
     let y_axis_factor = axis_query.y_axis_factor()?;
-
-    if x_axis_factor.name.eq("channel_trans.CD14") {
-        println!("{}", &x_axis_factor.name);
-    }
-
+ 
     let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
