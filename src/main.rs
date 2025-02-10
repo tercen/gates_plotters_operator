@@ -44,9 +44,15 @@ use crate::client::shapes::Shape;
 use crate::tercen::{Acl, CrosstabSpec, CubeAxisQuery, CubeQuery, e_file_document, e_file_metadata, e_meta_factor, e_relation, e_task, EFileDocument, EFileMetadata, EMetaFactor, ERelation, ETask, Factor, FileDocument, FileMetadata, MetaFactor, Pair, ReqUploadTable, SimpleRelation, PreProcessor};
 use crate::tercen::e_operator_input_spec::Object;
 use crate::client::utils::*;
+use crate::plotters_utils::coord::{PreProcessorsCoord, PreProcessorsRange};
+use crate::plotters_utils::ticks::{PreProcessorsCoordTicks, PreProcessorsRangeTicks};
+use crate::processors::PreProcess;
 
 mod client;
 mod tercen;
+mod plotters_utils;
+mod processors;
+mod ticks;
 
 const FONT: &str = "sans-serif";
 
@@ -361,7 +367,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // let elapsed = now.elapsed();
     // println!("Elapsed: {:.2?}", elapsed);
 
-    return Ok(());
+    // return Ok(());
 
     let mut file = File::open(filename).await?;
     let mut bytes = vec![];
@@ -533,12 +539,7 @@ fn get_input_spec(cube_query: CubeQuery) -> Result<CrosstabSpec, Box<dyn Error>>
         })
     }
 }
-fn exec_cube_query(
-    cube_query: &CubeQuery,
-    qt_df: DataFrame,
-    population_level: i32,
-    pop_count_previous: &mut HashMap<(i32, i32), f64>,
-) -> Result<(), Box<dyn Error>> {
+fn exec_cube_query(cube_query: &CubeQuery, qt_df: DataFrame, population_level: i32, pop_count_previous: &mut HashMap<(i32, i32), f64>) -> Result<(), Box<dyn Error>> {
     let axis_query = cube_query
         .axis_queries
         .first()
@@ -594,7 +595,8 @@ fn draw_cube_query(
     shapes_by_index: &HashMap<i32, Shape>,
     population_level: i32,
     pop_count_previous: &HashMap<(i32, i32), f64>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> 
+{
     let axis_query = cube_query
         .axis_queries
         .first()
@@ -690,15 +692,7 @@ impl AxisQueryWrapper {
             shapes,
         }
     }
-
-    // fn encode_shapes(&self) -> Result< Vec<Shape>, Box<dyn Error>> {
-    //     let x_pre_processors = self.x_pre_processors()?;
-    //     let y_pre_processors = self.y_pre_processors()?;
-    //     Ok(self.shapes.iter()
-    //         .map(|shape| shape.encode(&x_pre_processors, &y_pre_processors))
-    //         .collect())
-    // }
-
+ 
     fn has_x_axis(&self) -> Result<bool, Box<dyn Error>> {
         let flag = self.axis_query
             .x_axis
@@ -752,14 +746,7 @@ impl AxisQueryWrapper {
 
         Ok(y_axis_factor)
     }
-
-    // fn histogram_count(&self) -> Result<f64, Box<dyn Error>> {
-    //     Ok(
-    //         self.column_f64(".histogram_count")?
-    //             .into_no_null_iter()
-    //             .fold(0.0, |sum, value| sum + value))
-    // }
-
+ 
     fn column_f64(&self, name: &str) -> PolarsResult<&Float64Chunked> {
         self.qt_df.column(name)?.f64()
     }
@@ -779,10 +766,7 @@ impl AxisQueryWrapper {
     }
 
     fn total_pop(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
-        // Ok(pop_count_previous
-        //     .get(&(self.current_ci, 0))
-        //     .map(|v| *v)
-        //     .ok_or_else(|| TercenError::new("total_pop is required"))?)
+        
 
         let tt = pop_count_previous
             .get(&(self.current_ci, 0))
@@ -799,10 +783,7 @@ impl AxisQueryWrapper {
     }
 
     fn histogram_count_with(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
-        // Ok(pop_count_previous
-        //     .get(&(self.current_ci, self.population_level))
-        //     .map(|v| *v)
-        //     .ok_or_else(|| TercenError::new("histogram_count is required"))?)
+      
 
         let tt = pop_count_previous
             .get(&(self.current_ci, self.population_level))
@@ -827,7 +808,8 @@ impl AxisQueryWrapper {
 
 fn create_palette_from_df(
     axis_query: &CubeAxisQuery,
-    qt_df: &DataFrame) -> Result<JetPalette, Box<dyn Error>> {
+    qt_df: &DataFrame) -> Result<JetPalette, Box<dyn Error>> 
+{
     let has_x_axis = axis_query
         .x_axis
         .as_ref()
@@ -872,7 +854,8 @@ async fn create_col_and_qt_dataframe(
 
 async fn create_qt_df(
     tercen_ctx: &TercenContext,
-    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>> {
+    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>> 
+{
     let axis_query = cube_query
         .axis_queries
         .first()
@@ -920,7 +903,8 @@ async fn create_col_df(
     tercen_ctx: &TercenContext,
     sample_meta_factor: &MetaFactor,
     global_column_df: &DataFrame,
-    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>> {
+    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>> 
+{
     let sample_factor_names = sample_meta_factor
         .factors
         .iter()
@@ -963,11 +947,14 @@ fn create_palette(hist_count: Vec<f64>) -> JetPalette {
 fn draw_sample(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
-    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> {
+    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> 
+{
     if axis_query.has_x_axis()? && axis_query.has_y_axis()? {
-        draw_sample_density(axis_query, pop_count_previous, drawing_area)
+        // draw_sample_density(axis_query, pop_count_previous, drawing_area)
+        draw_sample_density_ticks(axis_query, pop_count_previous, drawing_area)
     } else {
-        draw_sample_histogram(axis_query, pop_count_previous, drawing_area)
+        // draw_sample_histogram(axis_query, pop_count_previous, drawing_area)
+        draw_sample_histogram_ticks(axis_query, pop_count_previous, drawing_area)
     }
 }
 
@@ -975,7 +962,8 @@ fn draw_sample_density(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
     drawing_area: &DrawingArea<BitMapBackend, Shift>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> 
+{
     let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
     let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
 
@@ -1035,7 +1023,7 @@ fn draw_sample_density(
         .y_label_formatter(&|v| format!("{:.precision$e}", v, precision = 1))
         .draw()?;
 
- 
+
     chart_builder
         .configure_secondary_axes()
         .axis_style(secondary_color.clone())
@@ -1078,6 +1066,110 @@ fn draw_sample_density(
     Ok(())
 }
 
+fn draw_sample_density_ticks(
+    axis_query: AxisQueryWrapper,
+    pop_count_previous: &HashMap<(i32, i32), f64>,
+    drawing_area: &DrawingArea<BitMapBackend, Shift>,
+) -> Result<(), Box<dyn Error>>
+{
+    let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
+    let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
+
+
+    let x_axis_factor = axis_query.x_axis_factor()?;
+    let y_axis_factor = axis_query.y_axis_factor()?;
+
+    if x_axis_factor.name.eq("channel_trans.CD14") {
+        println!("{}", &x_axis_factor.name);
+    }
+
+    let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
+    let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
+
+    let x_is_log = PreProcess::is_log_pre_processors(&axis_query.x_pre_processors()?);
+    let y_is_log = PreProcess::is_log_pre_processors(&axis_query.y_pre_processors()?);
+    let x_precision = if x_is_log {0} else {1};
+    let y_precision = if y_is_log {0} else {1};
+    let primary_x_coord = PreProcessorsRangeTicks::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
+    let primary_y_coord = PreProcessorsRangeTicks::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
+
+    
+
+    // 1000000.to_formatted_string(&Locale::en);
+
+    let total_pop = axis_query.total_pop(pop_count_previous)?;
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
+    let population_count = axis_query.population_count(pop_count_previous);
+
+    let caption = get_population_caption(&axis_query, total_pop, histogram_count, population_count);
+
+    let caption_style = TextStyle::from((FONT, 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+
+    let mut chart_builder = ChartBuilder::on(drawing_area)
+        .caption(caption, caption_style)
+        .margin(5)
+        .margin_bottom(20)
+        .x_label_area_size(40)
+        .y_label_area_size(50)
+        .build_cartesian_2d(primary_x_coord.clone(), primary_y_coord.clone())?
+        .set_secondary_coord(x_range, y_range);
+
+    chart_builder.configure_mesh()
+        .x_desc(&x_axis_factor.name)
+        .y_desc(&y_axis_factor.name)
+        .x_labels(5)
+        .y_labels(7)
+        .disable_mesh()
+        .x_label_formatter(&|v| v.format(x_precision))
+        .y_label_formatter(&|v| v.format(y_precision))
+        .draw()?;
+
+
+    chart_builder
+        .configure_secondary_axes()
+        .axis_style(secondary_color.clone())
+        .label_style((FONT, 20).into_font().color(&secondary_color))
+        .draw()?;
+
+
+    let primary_values = vec![(primary_x_coord.range.start.into(), primary_y_coord.range.start.into()),
+                              (primary_x_coord.range.end.into(), primary_y_coord.range.end.into())];
+    
+    chart_builder.draw_series(LineSeries::new(primary_values, &primary_color))?;
+
+    let yy = axis_query.column_f64(".y")?;
+    let xx = axis_query.column_f64(".x")?;
+
+    let hist_count = axis_query.column_f64(".histogram_count")?;
+    let y_bin_size = axis_query.column_f64(".y_bin_size")?;
+    let x_bin_size = axis_query.column_f64(".x_bin_size")?;
+
+    let line = xx
+        .into_no_null_iter()
+        .zip(yy.into_no_null_iter())
+        .zip(
+            x_bin_size
+                .into_no_null_iter()
+                .zip(y_bin_size.into_no_null_iter()),
+        )
+        .zip(hist_count.into_no_null_iter())
+        .map(|((point, bin_sizes), histo_count)| {
+            Rectangle::new(
+                [
+                    (point.0 - bin_sizes.0 / 2.0, point.1 - bin_sizes.1 / 2.0),
+                    (point.0 + bin_sizes.0 / 2.0, point.1 + bin_sizes.1 / 2.0),
+                ],
+                axis_query.palette.get_color_rgb(histo_count).to_plotters().filled(),
+            )
+        });
+
+    chart_builder.draw_secondary_series(line)?;
+
+    draw_shapes_ticks(axis_query, &mut chart_builder)?;
+
+    Ok(())
+}
+
 fn get_population_caption(axis_query: &AxisQueryWrapper, total_pop: f64, histogram_count: f64, population_count: Option<f64>) -> String {
     let caption = match population_count {
         None => {
@@ -1101,7 +1193,8 @@ fn get_population_caption(axis_query: &AxisQueryWrapper, total_pop: f64, histogr
 fn draw_sample_histogram(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
-    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> {
+    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> 
+{
     let color = BLUE; //RGBAColor(0, 0, 0, 1.0);
     let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
     let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
@@ -1180,9 +1273,94 @@ fn draw_sample_histogram(
     Ok(())
 }
 
+fn draw_sample_histogram_ticks(
+    axis_query: AxisQueryWrapper,
+    pop_count_previous: &HashMap<(i32, i32), f64>,
+    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>>
+{
+    let color = BLUE; //RGBAColor(0, 0, 0, 1.0);
+    let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
+    let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
+
+    // let y_axis_factor = axis_query.y_axis_factor()?;
+    let x_axis_factor = axis_query.x_axis_factor()?;
+
+    let x_range = axis_query.column_range_f64(".x")?; //x_min..x_max;
+    let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
+
+    let x_is_log = PreProcess::is_log_pre_processors(&axis_query.x_pre_processors()?);
+    let y_is_log = PreProcess::is_log_pre_processors(&axis_query.y_pre_processors()?);
+    let x_precision = if x_is_log {0} else {1};
+    let y_precision = if y_is_log {0} else {1};
+    
+    let primary_x_coord = PreProcessorsRangeTicks::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
+    let primary_y_coord = PreProcessorsRangeTicks::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
+ 
+    let total_pop = axis_query.total_pop(pop_count_previous)?;
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
+    let population_count = axis_query.population_count(pop_count_previous);
+
+    let caption = get_population_caption(&axis_query, total_pop, histogram_count, population_count);
+
+    let caption_style = TextStyle::from((FONT, 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+
+    let mut chart_builder = ChartBuilder::on(drawing_area)
+        .caption(caption, caption_style)
+        .margin(5)
+        .set_left_and_bottom_label_area_size(50)
+        .build_cartesian_2d(primary_x_coord.clone(), primary_y_coord.clone())?
+        .set_secondary_coord(x_range, y_range);
+
+    // let text_style = ("sans-serif", 20).with_color(RED).into_text_style(drawing_area) .transform(FontTransform::Rotate90);
+
+    
+    
+    chart_builder.configure_mesh()
+        .x_desc(&x_axis_factor.name)
+        .y_desc("count")
+        .x_labels(10)
+        .y_labels(10)
+        .disable_mesh()
+        // .x_label_style(text_style)
+        .x_label_formatter(&|v| v.format(x_precision))
+        .y_label_formatter(&|v| v.format(y_precision))
+        .draw()?;
+
+    let primary_values = vec![(primary_x_coord.range.start.into(), primary_y_coord.range.start.into()),
+                              (primary_x_coord.range.end.into(), primary_y_coord.range.end.into())];
+    
+    chart_builder.draw_series(LineSeries::new(primary_values.clone(), &primary_color))?;
+  
+
+    chart_builder
+        .configure_secondary_axes()
+        .axis_style(secondary_color.clone())
+        .label_style((FONT, 20).into_font().color(&secondary_color))
+        .draw()?;
+ 
+
+    
+
+    let yy = axis_query.column_f64(".y")?;
+    let xx = axis_query.column_f64(".x")?;
+
+    let xy = xx.into_no_null_iter()
+        .zip(yy.into_no_null_iter()).collect::<Vec<(f64, f64)>>();
+
+    // xy.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+    chart_builder.draw_secondary_series(LineSeries::new(xy, &color))?;
+
+    draw_shapes_ticks(axis_query, &mut chart_builder)?;
+    // draw_shapes_ticks
+
+    Ok(())
+}
+
 fn draw_shapes(axis_query: AxisQueryWrapper,
                cc: &mut ChartContext<BitMapBackend, Cartesian2d<PreProcessorsCoord, PreProcessorsCoord>>)
-               -> Result<(), Box<dyn Error>> {
+               -> Result<(), Box<dyn Error>> 
+{
     // let shapes = axis_query.encode_shapes()?;
     //we draw shapes on primary axis, we don't need to encode
     let shapes = axis_query.shapes.clone();
@@ -1305,494 +1483,130 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
     Ok(())
 }
 
-#[derive(Clone)]
-pub struct PreProcessorsCoord {
-    linear: RangedCoordf64,
-    logic: Range<f64>,
-    normalized: Range<f64>,
-
-    zero_point: f64,
-    negative: bool,
-    pre_processors: Vec<PreProcess>,
-}
+fn draw_shapes_ticks(axis_query: AxisQueryWrapper,
+               cc: &mut ChartContext<BitMapBackend, Cartesian2d<PreProcessorsCoordTicks, PreProcessorsCoordTicks>>)
+               -> Result<(), Box<dyn Error>>
+{
+    // let shapes = axis_query.encode_shapes()?;
+    //we draw shapes on primary axis, we don't need to encode
+    let shapes = axis_query.shapes.clone();
 
 
-#[derive(Default)]
-struct PreProcessorsRange {
-    range: Range<f64>,
-    zero: f64,
-    pre_processors: Vec<PreProcess>,
-}
+    let shape_style = ShapeStyle {
+        color: BLACK.to_rgba(), //. mix(0.6),
+        filled: false,
+        stroke_width: 3,
+    };
+    for shape in shapes {
+        match shape {
+            Shape::Rectangle(shape) => {
+                let rec = Rectangle::new(
+                    [
+                        (shape.rectangle.left.into(), shape.rectangle.top.into()),
+                        ((shape.rectangle.left + shape.rectangle.width).into(), (shape.rectangle.top + shape.rectangle.height).into())
+                    ],
+                    shape_style,
+                );
 
-impl PreProcessorsRange {
-    fn from_range(pre_processs: Vec<PreProcess>, x_range: Range<f64>) -> Result<Self, Box<dyn Error>> {
-        if !x_range.start.is_finite() {
-            return Err(TercenError::new("x_range.start.is_finite").into());
-        }
-        if !x_range.end.is_finite() {
-            return Err(TercenError::new("x_range.start.is_finite").into());
-        }
-        let min_encoded = PreProcess::encode_pre_processors(&pre_processs, x_range.start);
-        let max_encoded = PreProcess::encode_pre_processors(&pre_processs, x_range.end);
-        if !min_encoded.is_finite() {
-            return Err(TercenError::new("x_range.start.is_finite").into());
-        }
-        if !max_encoded.is_finite() {
-            return Err(TercenError::new("x_range.start.is_finite").into());
-        }
-
-        Ok(PreProcessorsRange::from_encoded_range(pre_processs, min_encoded..max_encoded))
-    }
-
-    fn from_encoded_range(pre_processors: Vec<PreProcess>, range: Range<f64>) -> Self {
-        PreProcessorsRange { range, zero: 0.0, pre_processors }
-    }
-
-    fn encode(&self, fv: f64) -> f64 {
-        PreProcess::encode_pre_processors(&self.pre_processors, fv)
-    }
-
-    fn decode(&self, fv: f64) -> f64 {
-        PreProcess::decode_pre_processors(&self.pre_processors, fv)
-    }
-}
-
-impl AsRangedCoord for PreProcessorsRange {
-    type CoordDescType = PreProcessorsCoord;
-    type Value = Tick;
-}
-
-impl From<PreProcessorsRange> for PreProcessorsCoord {
-    fn from(spec: PreProcessorsRange) -> Self {
-        let zero_point = spec.zero;
-        let mut start = spec.range.start.as_f64() - zero_point;
-        let mut end = spec.range.end.as_f64() - zero_point;
-        let negative = false;
-        // let negative = if start < 0.0 || end < 0.0 {
-        //     start = -start;
-        //     end = -end;
-        //     true
-        // } else {
-        //     false
-        // };
-
-        // if start < end {
-        //     if start == 0.0 {
-        //         start = start.max(end * 1e-5);
-        //     }
-        // } else if end == 0.0 {
-        //     end = end.max(start * 1e-5);
-        // }
-
-        PreProcessorsCoord {
-            linear: (spec.decode(start)..spec.decode(end)).into(),
-            logic: spec.range,
-            normalized: start..end,
-            pre_processors: spec.pre_processors,
-            zero_point,
-            negative,
-        }
-    }
-}
-
-#[derive(Clone)]
-enum PreProcess {
-    Identity,
-    Asinh(Asinh),
-    Log,
-    Logicl(Logicle),
-}
-
-#[derive(Clone)]
-struct Asinh {
-    co_factor: f64,
-}
-
-impl Asinh {
-    fn decode(&self, v: f64) -> f64 {
-        let value = v / self.co_factor;
-        let vv = value + ((value).powi(2) + 1.0).powf(0.5);
-        if vv > 0.0 {
-            vv.ln()
-        } else {
-            f64::NAN
-        }
-    }
-
-    fn encode(&self, v: f64) -> f64 {
-        ((v.exp() - (-v).exp()) / 2.0) * self.co_factor
-    }
-}
-
-trait PreProcessorCodec {
-    fn encode(&self, value: f64) -> f64;
-    fn decode(&self, value: f64) -> f64;
-}
-
-impl PreProcessorCodec for Vec<PreProcess> {
-    fn encode(&self, value: f64) -> f64 {
-        PreProcess::encode_pre_processors(&self, value)
-    }
-
-    fn decode(&self, value: f64) -> f64 {
-        PreProcess::decode_pre_processors(&self, value)
-    }
-}
-
-impl PreProcess {
-    fn property_value<F: FromStr>(pre_processor: &PreProcessor, name: &str) -> Result<F, Box<dyn Error>> {
-        let value = pre_processor.operator_ref.as_ref()
-            .map(|operator_ref| &operator_ref.property_values)
-            .and_then(|pv| pv.iter().find(|pv| pv.name.eq(name)))
-            .ok_or_else(|| format!("{} not found", name))?
-            .value.parse::<F>()
-            .map_err(|_| TercenError::new(&format!("{} parse failed", name)))?;
-        Ok(value)
-    }
-    fn from_pre_processor(pre_processor: PreProcessor) -> Result<Self, Box<dyn Error>> {
-        let name = pre_processor.operator_ref.as_ref().map_or("", |operator_ref| &operator_ref.name);
-        match name {
-            "asinh" => {
-                let co_factor = PreProcess::property_value::<f64>(&pre_processor, "cofactor")
-                    .unwrap_or(1.0);
-                Ok(PreProcess::Asinh(Asinh { co_factor }))
+                cc.draw_series([rec])?;
             }
-            "log" => Ok(PreProcess::Log),
-            "logicle" => {
-                let t = PreProcess::property_value::<f64>(&pre_processor, "T")?;
-                let w = PreProcess::property_value::<f64>(&pre_processor, "W")?;
-                let m = PreProcess::property_value::<f64>(&pre_processor, "M")?;
-                let a = PreProcess::property_value::<f64>(&pre_processor, "A")?;
-                let bins = PreProcess::property_value::<i32>(&pre_processor, "bins")?;
-                Ok(PreProcess::Logicl(Logicle::new(t, w, m, a, bins)?))
+            Shape::Quadrant(shape) => {
+                if shape.quadrant.eq("Q1") {
+                    // top left
+                    let rec = Rectangle::new(
+                        [
+                            (cc.x_range().start.into(), cc.y_range().end.into()),
+                            (shape.center.x.into(), shape.center.y.into())
+                        ],
+                        shape_style,
+                    );
+
+                    cc.draw_series([rec])?;
+                } else if shape.quadrant.eq("Q2") {
+                    // top right
+                    let rec = Rectangle::new(
+                        [
+                            (shape.center.x.into(), cc.y_range().end.into()),
+                            (cc.x_range().end.into(), shape.center.y.into())
+                        ],
+                        shape_style,
+                    );
+
+                    cc.draw_series([rec])?;
+                } else if shape.quadrant.eq("Q3") {
+                    // bottom right
+                    let rec = Rectangle::new(
+                        [
+                            (shape.center.x.into(), shape.center.y.into()),
+                            (cc.x_range().end.into(), cc.y_range().start.into())
+                        ],
+                        shape_style,
+                    );
+                    cc.draw_series([rec])?;
+                } else if shape.quadrant.eq("Q4") {
+                    //bottom left
+                    let rec = Rectangle::new(
+                        [
+                            (cc.x_range().start.into(), shape.center.y.into()),
+                            (shape.center.x.into(), cc.y_range().start.into())
+                        ],
+                        shape_style,
+                    );
+                    cc.draw_series([rec])?;
+                } else {
+                    //
+                }
             }
-            &_ => Ok(PreProcess::Identity)
-        }
-    }
-    fn encode_pre_processors(pre_processors: &Vec<PreProcess>, v: f64) -> f64 {
-        pre_processors.iter().fold(v, |v, p| p.encode(v))
-    }
+            Shape::XRange(shape) => {
+                cc.draw_series(LineSeries::new([(shape.range.start.into(), 0.0.into()),
+                                                   (shape.range.start.into(), cc.y_range().end.into())],
+                                               shape_style))?;
 
-    fn decode_pre_processors(pre_processors: &Vec<PreProcess>, v: f64) -> f64 {
-        pre_processors.iter().rev().fold(v, |v, p| p.decode(v))
-    }
-    fn is_log(&self) -> bool {
-        match self {
-            PreProcess::Identity => false,
-            PreProcess::Asinh(_) => true,
-            PreProcess::Log => true,
-            PreProcess::Logicl(_) => true,
-        }
-    }
-    fn decode(&self, value: f64) -> f64 {
-        match self {
-            PreProcess::Identity => value,
-            PreProcess::Asinh(asinh) => asinh.decode(value),
-            PreProcess::Log => value.ln(),
-            PreProcess::Logicl(logicle) => logicle.scale(value).unwrap_or(f64::NAN),
-        }
-    }
-
-    fn encode(&self, value: f64) -> f64 {
-        match self {
-            PreProcess::Identity => value,
-            PreProcess::Asinh(asinh) => asinh.encode(value),
-            PreProcess::Log => value.exp(),
-            PreProcess::Logicl(logicle) => logicle.inverse(value),
-        }
-    }
-}
-
-
-impl PreProcessorsCoord {
-    fn is_log(&self) -> bool {
-        self.pre_processors.iter()
-            .any(|pre_processor| pre_processor.is_log())
-    }
-
-    fn encode(&self, v: f64) -> f64 {
-        PreProcess::encode_pre_processors(&self.pre_processors, v)
-    }
-
-    fn decode(&self, v: f64) -> f64 {
-        PreProcess::decode_pre_processors(&self.pre_processors, v)
-    }
-    fn value_to_f64(&self, value: &f64) -> f64 {
-        let fv = value.as_f64() - self.zero_point;
-        if self.negative {
-            -fv
-        } else {
-            fv
-        }
-    }
-
-    fn f64_to_value(&self, fv: f64) -> f64 {
-        let fv = if self.negative { -fv } else { fv };
-        f64::from_f64(fv + self.zero_point)
-    }
-
-    fn is_inf(&self, fv: f64) -> bool {
-        let fv = if self.negative { -fv } else { fv };
-        let a = f64::from_f64(fv + self.zero_point);
-        let b = f64::from_f64(self.zero_point);
-
-        (f64::as_f64(&a) - f64::as_f64(&b)).abs() < f64::EPSILON
-    }
-}
-
-
-#[derive(Debug)]
-struct Tick {
-    value: f64,
-    is_sub_tick: bool,
-}
-
-impl PreProcessorsCoord {
-    pub fn compute_tick_spacing(range: f64, max_ticks: u32) -> f64 {
-        if range == 0.0 {
-            return 1.0;
-        }
-
-        assert!(range > 0.0);
-
-        assert!(max_ticks > 0);
-
-        let temp_step = range / max_ticks as f64;
-
-        // get the magnitude of the step size
-        let mag = temp_step.log10().floor();
-        let mag_pow = 10.0f64.powf(mag);
-
-        // calculate most significant digit of the new step size
-        let mut mag_msd = (temp_step / mag_pow + 0.5).round();
-
-        // promote the MSD to either 1, 2, or 5
-        if mag_msd > 5.0 {
-            mag_msd = 10.0;
-        } else if mag_msd > 2.0 {
-            mag_msd = 5.0;
-        } else if mag_msd > 1.0 {
-            mag_msd = 2.0;
-        }
-
-        mag_msd * mag_pow
-    }
-
-    fn linear_ticks<Hint: KeyPointHint>(&self, hint: &Hint, min_value: f64, max_value: f64) -> Vec<Tick> {
-        if !min_value.is_finite() || !max_value.is_finite() {
-            return Vec::new();
-        }
-
-        if max_value - min_value == 0.0 {
-            return vec![Tick{value: min_value, is_sub_tick: false}];
-        }
-        assert!(min_value < max_value);
-
-        let tick_spacing = Self::compute_tick_spacing(max_value - min_value, hint.max_num_points() as u32);
-
-        if !tick_spacing.is_finite() {
-            return vec![];
-        }
-
-        if tick_spacing == 0.0 {
-            return vec![Tick{value: (max_value - min_value) / 2.0, is_sub_tick: false} ];
-        }
-
-        assert!(tick_spacing > 0.0);
-
-        let first_tick_value = (min_value / tick_spacing).floor() * tick_spacing;
-
-        let mut result = vec![Tick{value: first_tick_value, is_sub_tick: false}  ];
-
-        for i in 1..hint.max_num_points() {
-            result.push(Tick{value: first_tick_value + i as f64 * tick_spacing, is_sub_tick: false} );
-        }
-
-        result
-    }
-
-    fn log_ticks<Hint: KeyPointHint>(&self, hint: &Hint, min_mag: i32, max_mag: i32, min_value: f64, max_value: f64, sign: i32) -> Vec<Tick> {
-        let mut result = vec![];
-
-        for i in min_mag..max_mag {
-            let tick_value = 10.0.pow(i as f64) * sign as f64;
-            result.push(Tick{value: tick_value, is_sub_tick: false});
-        }
-
-        if sign < 0 {
-            result.reverse();
-        }
-
-        result
-    }
-    fn ticks<Hint: KeyPointHint>(&self, hint: Hint, min_value: f64, max_value: f64) -> Vec<Tick> {
-        if !self.is_log() {
-            return self.linear_ticks(&hint, min_value, max_value);
-        }
-
-        if !min_value.is_finite() || !max_value.is_finite() {
-            return Vec::new();
-        }
-
-        if (max_value - min_value) == 0.0 {
-            return self.linear_ticks(&hint, min_value, max_value);
-        }
-
-        let base = 10.0f64;
-        let base_ln = base.ln();
-
-        if min_value > 0.0 {
-            let mag_min = (min_value.ln() / base_ln).floor() as i32;
-            let mag_max = (max_value.ln() / base_ln).ceil() as i32;
-
-            if mag_max - mag_min < 2 {
-                self.linear_ticks(&hint, min_value, max_value)
-            } else {
-                self.log_ticks(&hint, mag_min, mag_max, min_value, max_value, 1)
+                cc.draw_series(LineSeries::new([(shape.range.end.into(), 0.0.into()),
+                                                   (shape.range.end.into(), cc.y_range().end.into())],
+                                               shape_style))?;
             }
-        } else if min_value == 0.0 {
-            let mag_max = (max_value.ln() / base_ln).ceil() as i32;
-            let mag_min = 0;
-            if mag_max < 2 {
-                self.linear_ticks(&hint, min_value, max_value)
-            } else {
-                self.log_ticks(&hint, mag_min, mag_max, min_value, max_value, 1)
+            Shape::YRange(shape) => {
+                // if axis_query.axis_query.is_histogram() {
+                //     cc.draw_series(LineSeries::new([(shape.range.start, 0.0),
+                //                                        (shape.range.start, cc.y_range().end)],
+                //                                    shape_style))?;
+                // 
+                //     cc.draw_series(LineSeries::new([(shape.range.end, 0.0),
+                //                                        (shape.range.end, cc.y_range().end)],
+                //                                    shape_style))?;
+                // } else {
+                //     
+                // }
+
+                cc.draw_series(LineSeries::new([(cc.x_range().start.into(), shape.range.start.into()),
+                                                   (cc.x_range().end.into(), shape.range.start.into())],
+                                               shape_style))?;
+
+                cc.draw_series(LineSeries::new([(cc.x_range().start.into(), shape.range.end.into()),
+                                                   (cc.x_range().end.into(), shape.range.end.into())],
+                                               shape_style))?;
             }
-        } else if max_value == 0.0 {
-            let mag_min = ((-min_value).ln() / base_ln).ceil() as i32;
-            if mag_min.abs() < 2 {
-                self.linear_ticks(&hint, min_value, max_value)
-            } else {
-                self.log_ticks(&hint, 0, mag_min, min_value, max_value, -1)
+            Shape::Polygon(shape) => {
+                if !shape.polygon.is_empty() {
+                    cc.draw_series(LineSeries::new(
+                        shape.polygon.iter()
+                            .map(|p| (p.x.into(), p.y.into()))
+                            .chain([shape.polygon.first().map(|p| (p.x.into(), p.y.into())).unwrap()]), shape_style))?;
+                }
             }
-        } else if max_value < 0.0 {
-            let mag_min = ((-min_value).ln() / base_ln).ceil() as i32;
-            let mag_max = ((-max_value).ln() / base_ln).floor() as i32;
+            Shape::XHistogramRange(shape) => {
+                cc.draw_series(LineSeries::new([(shape.range.start.into(), 0.0.into()),
+                                                   (shape.range.start.into(), cc.y_range().end.into())],
+                                               shape_style))?;
 
-            assert!(mag_min >= mag_max);
-
-            if mag_min - mag_max < 2 {
-                self.linear_ticks(&hint, min_value, max_value)
-            } else {
-                self.log_ticks(&hint, mag_max, mag_min, min_value, max_value, -1)
-            }
-        } else {
-            let mag_min = ((-min_value).ln() / base_ln).ceil() as i32;
-            let mag_max = ((max_value).ln() / base_ln).ceil() as i32;
-
-            if mag_min >= 2 || mag_max >= 2 {
-                let mut result = vec![];
-
-                result.extend(self.log_ticks(&hint, 0, mag_min, min_value, max_value, -1));
-
-                //yield _compute_tick(
-                //             0.0, transformedMinValue, transformedRange, codec.decoder);
-
-                result.extend(self.log_ticks(&hint, 0, mag_max, min_value, max_value, 1));
-
-                result
-            } else {
-                self.linear_ticks(&hint, min_value, max_value)
+                cc.draw_series(LineSeries::new([(shape.range.end.into(), 0.0.into()),
+                                                   (shape.range.end.into(), cc.y_range().end.into())],
+                                               shape_style))?;
             }
         }
     }
-}
-
-
-impl Ranged for PreProcessorsCoord {
-    type FormatOption = DefaultFormatting;
-    type ValueType = Tick;
-
-    fn map(&self, value: &Self::ValueType, limit: (i32, i32)) -> i32 {
-        if self.is_log() {
-            let fv = self.value_to_f64(&value.value);
-            let value_ln = self.decode(fv);
-            self.linear.map(&value_ln, limit)
-        } else {
-            self.linear.map(&value.value, limit)
-        }
-    }
-
-    fn key_points<Hint: KeyPointHint>(&self, hint: Hint) -> Vec<Tick> {
-        let Range { mut start, mut end } = self.normalized;
-        if start > end {
-            std::mem::swap(&mut start, &mut end);
-        }
-        let mut max_points =  hint.max_num_points();
-        println!("key_points -- max_points {}", max_points);
-        // max_points = 5;
-        let result = self.ticks(max_points, start, end);
-        println!("key_points {:?}", result);
-        // result.into_iter().map(|t| t.value).collect()
-        result
-    }
-    // fn key_points2<Hint: KeyPointHint>(&self, hint: Hint) -> Vec<f64> {
-    //     if self.is_log() {
-    //         let max_points = hint.max_num_points();
-    // 
-    //         let base = 10.0f64;
-    //         let base_ln = base.ln();
-    // 
-    //         let Range { mut start, mut end } = self.normalized;
-    // 
-    //         if start > end {
-    //             std::mem::swap(&mut start, &mut end);
-    //         }
-    // 
-    //         let bold_count = ((end / start).ln().abs() / base_ln).floor().max(1.0) as usize;
-    // 
-    //         let light_density = if max_points < bold_count {
-    //             0
-    //         } else {
-    //             let density = 1 + (max_points - bold_count) / bold_count;
-    //             let mut exp = 1;
-    //             while exp * 10 <= density {
-    //                 exp *= 10;
-    //             }
-    //             exp - 1
-    //         };
-    // 
-    //         let mut multiplier = base;
-    //         let mut cnt = 1;
-    //         while max_points < bold_count / cnt {
-    //             multiplier *= base;
-    //             cnt += 1;
-    //         }
-    // 
-    //         let mut ret = vec![];
-    //         let mut val = (base).powf((start.ln() / base_ln).ceil());
-    // 
-    //         while val <= end {
-    //             if !self.is_inf(val) {
-    //                 ret.push(self.f64_to_value(val));
-    //             }
-    //             for i in 1..=light_density {
-    //                 let v = val
-    //                     * (1.0
-    //                     + multiplier / f64::from(light_density as u32 + 1) * f64::from(i as u32));
-    //                 if v > end {
-    //                     break;
-    //                 }
-    //                 if !self.is_inf(val) {
-    //                     ret.push(self.f64_to_value(v));
-    //                 }
-    //             }
-    //             val *= multiplier;
-    //         }
-    //         ret
-    //     } else {
-    //         self.linear.key_points(hint)
-    //     }
-    // }
-
-
-    fn range(&self) -> Range<Self::ValueType> {
-        Range {
-            start: Tick {value: self.logic.start, is_sub_tick: false},
-            end: Tick {value: self.logic.end, is_sub_tick: false},
-        }
-        // self.logic.clone()
-    }
+    Ok(())
 }
 
 
