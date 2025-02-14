@@ -65,6 +65,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let sample_meta_factor = get_sample_meta_factor(cube_query)?;
 
     let shape_tbl = get_shape_tbl(&tercen_ctx).await?;
+    
+    // println!("shape_tbl -- {:?}", shape_tbl);
 
     let mut shapes_by_index = HashMap::new();
     let shape_index = shape_tbl.column(".shape.index")?.i32()?.into_no_null_iter().collect::<Vec<_>>();
@@ -611,6 +613,13 @@ fn draw_cube_query(
 
     // println!("ci -- {:?}", &ci);
     // println!("ci_global -- {:?}", &ci_global);
+    
+    // println!("global_column_df -- {:?}", global_column_df);
+    // println!("ci_df -- {:?}", &ci_df);
+    // println!("shape_join_df -- {:?}", shape_join_df);
+    // println!("shapes_by_index -- {:?}", shapes_by_index);
+    
+    // println!("qt_df -- {:?}", &qt_df);
 
 
     for qt_df in data_frames_by_ci.into_iter() {
@@ -647,6 +656,7 @@ fn draw_cube_query(
             .filter(|((task, _), ci_glob)| ci_glob.eq(ci_global) && (*task).eq(&task_id.to_string()))
             .map(|((_, shape_index), _)| shape_index)
             .map(|shape_index| shapes_by_index.get(&shape_index))
+            .filter(|shape| shape.is_some())
             .collect::<Option<Vec<_>>>()
             .ok_or_else(|| TercenError::new("failed to get shapes"))?
             .iter()

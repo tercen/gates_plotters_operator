@@ -4,7 +4,7 @@ use serde_json::Value;
 use crate::client::TercenError;
 use crate::processors::PreProcessorCodec;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Shape {
     Rectangle(RectangleShape),
     Quadrant(QuadrantShape),
