@@ -29,6 +29,9 @@ use tonic::{Request, Status};
 
 use crate::client::utils::*;
 
+const TASK_ID: &'static str = "b587089d2031dd77d7b27e63844ed69e";
+ 
+
 #[derive(Debug)]
 pub struct TercenError {
     message: String,
@@ -244,7 +247,7 @@ impl TercenContext {
             }
             Err(_) => {
                 // Err(Box::new(TercenError::new("taskId is required")))
-                Ok("c75746564a75c21d0fc41246c398ea39".to_string())
+                Ok(TASK_ID.to_string())
             }
         }
     }

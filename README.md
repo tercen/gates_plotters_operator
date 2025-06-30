@@ -1,4 +1,4 @@
-
+# Build
 
 ```shell 
 docker build -t tercen/gates_plotters_operator:latest .
@@ -22,5 +22,12 @@ cargo build --release
 cargo fmt --all
 ```
 
+# Test
+
 ```shell
-run --package gates_plotters_operator --bin gates_plotters_operator -- --taskId e4c6293e21e71057806d192e43e53ebe```
+cargo run --package gates_plotters_operator --bin gates_plotters_operator -- --taskId b587089d2031dd77d7b27e63843c18f0
+```
+
+# Deployment
+
+

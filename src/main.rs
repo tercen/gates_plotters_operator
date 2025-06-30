@@ -27,7 +27,7 @@ use plotters::style::text_anchor::{HPos, Pos, VPos};
 
 use plotters::coord::ranged1d::{AsRangedCoord, DefaultFormatting, KeyPointHint};
 use plotters::data::float::FloatPrettyPrinter;
-use polars::export::num::{Float, Pow};
+use polars::export::num::{Float, Pow, ToPrimitive};
 use polars::export::num::float::FloatCore;
 use polars::export::num::real::Real;
 use polars::prelude::*;
@@ -42,11 +42,13 @@ use crate::client::quartiles::quartiles;
 use crate::client::query_helper::CubeAxisQueryHelper;
 use crate::client::shapes::Shape;
 use crate::tercen::{Acl, CrosstabSpec, CubeAxisQuery, CubeQuery, e_file_document, e_file_metadata, e_meta_factor, e_relation, e_task, EFileDocument, EFileMetadata, EMetaFactor, ERelation, ETask, Factor, FileDocument, FileMetadata, MetaFactor, Pair, ReqUploadTable, SimpleRelation, PreProcessor};
-use crate::tercen::e_operator_input_spec::Object;
+use crate::tercen::e_operator_input_spec ;
 use crate::client::utils::*;
 use crate::plotters_utils::coord::{PreProcessorsCoord, PreProcessorsRange};
 use crate::plotters_utils::ticks::{PreProcessorsCoordTicks, PreProcessorsRangeTicks};
 use crate::processors::PreProcess;
+use crate::tercen::e_column_schema::Object;
+use crate::tercen::e_schema;
 
 mod client;
 mod tercen;
@@ -64,23 +66,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let cube_query = tercen_ctx.get_task().await?.get_cube_query()?.clone();
     let sample_meta_factor = get_sample_meta_factor(cube_query)?;
 
-    let shape_tbl = get_shape_tbl(&tercen_ctx).await?;
-    
     // println!("shape_tbl -- {:?}", shape_tbl);
 
-    let mut shapes_by_index = HashMap::new();
-    let shape_index = shape_tbl.column(".shape.index")?.i32()?.into_no_null_iter().collect::<Vec<_>>();
-    let shape_json = shape_tbl
-        .column(".shape.json")?
-        .iter()
-        .map(|v| v.get_str().map(|s| s.to_string()))
-        .collect::<Option<Vec<_>>>()
-        .ok_or_else(|| TercenError::new("Failed to get shapes from json."))?;
-
-    for (shape_idx, shape_json) in shape_index.into_iter().zip(shape_json.into_iter()) {
-        let shape = Shape::from_json(&shape_json)?;
-        shapes_by_index.insert(shape_idx, shape);
-    }
+    let shapes_by_index = get_shapes_by_index(&tercen_ctx).await?;
 
     let overview_tbl = get_sample_overview_tbl(&tercen_ctx, &sample_meta_factor).await?;
 
@@ -233,9 +221,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .map(|factor| !factor.name.is_empty())
             .ok_or_else(|| TercenError::new("y_axis is required"))?;
 
-        let has_log_color_pre_processor = axis_query.preprocessors.iter().any(|p| p.r#type.eq("color"));
+        let has_log_color_pre_processor = axis_query.preprocessors.iter()
+            .any(|p| p.r#type.eq("color"));
 
-        let histogram_count_name = if has_x_axis && has_y_axis { ".histogram_count" } else { ".y" };
+        let is_histo =
+            axis_query.preprocessors.iter()
+                .any(|p| p.operator_ref.as_ref()
+                    .map_or(false, |v| v.name == "histogram"));
+
+        let histogram_count_name = if has_x_axis && has_y_axis && is_histo { ".histogram_count" } else { ".y" };
 
         let mut stream = tercen_ctx
             .select_stream(&cube_query.qt_hash,
@@ -259,15 +253,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     .map(|c| *c)
                     .unwrap_or(0.0);
 
-                let histogram_count = if has_log_color_pre_processor {
-                    data_frame_by_ci.column(histogram_count_name)?.f64()?
-                        .into_no_null_iter()
-                        .fold(old_histogram_count, |sum, value| sum + value.exp())
+                let histogram_count = if is_histo {
+                    if has_log_color_pre_processor {
+                        data_frame_by_ci.column(histogram_count_name)?.f64()?
+                            .into_no_null_iter()
+                            .fold(old_histogram_count, |sum, value| sum + value.exp())
+                    } else {
+                        data_frame_by_ci.column(histogram_count_name)?.f64()?
+                            .into_no_null_iter()
+                            .fold(old_histogram_count, |sum, value| sum + value)
+                    }
                 } else {
                     data_frame_by_ci.column(histogram_count_name)?.f64()?
-                        .into_no_null_iter()
-                        .fold(old_histogram_count, |sum, value| sum + value)
+                        .into_no_null_iter().len().to_f64().
+                        ok_or_else(|| TercenError::new("Failed to compute histogram_count."))?
                 };
+
 
                 // println!("histogram_count {} -- (current_ci, population_level) {:?}", histogram_count, (current_ci, population_level));
 
@@ -438,6 +439,29 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+async fn get_shapes_by_index(tercen_ctx: &TercenContext) -> Result<HashMap<i32, Shape>, Box<dyn Error>> {
+    let mut shapes_by_index = HashMap::new();
+    // ".shape.index", ".shape.json"
+    let shape_tbl = get_shape_tbl(&tercen_ctx).await?;
+
+    let shape_index = shape_tbl.column(".shape.index")?
+        .i32()?
+        .into_no_null_iter()
+        .collect::<Vec<_>>();
+
+    let shape_json = shape_tbl
+        .column(".shape.json")?
+        .iter()
+        .map(|v| v.get_str().map(|s| s.to_string()))
+        .collect::<Option<Vec<_>>>()
+        .ok_or_else(|| TercenError::new("Failed to get shapes from json."))?;
+
+    for (shape_idx, shape_json) in shape_index.into_iter().zip(shape_json.into_iter()) {
+        let shape = Shape::from_json(&shape_json)?;
+        shapes_by_index.insert(shape_idx, shape);
+    }
+    Ok(shapes_by_index)
+}
 
 async fn get_sample_overview_tbl(ctx: &TercenContext, sample_factors: &MetaFactor) -> Result<DataFrame, Box<dyn Error>> {
     let task_env = ctx.get_task_env().await?;
@@ -496,9 +520,13 @@ fn get_sample_meta_factor(cube_query: CubeQuery) -> Result<MetaFactor, Box<dyn E
 
     assert_eq!(&sample_meta_factor.ontology_mapping, "sample");
     assert_eq!(&sample_meta_factor.crosstab_mapping, "column");
+
     if sample_meta_factor.factors.is_empty() {
         return Err(Box::new(TercenError::new("A sample factor is required.")));
     }
+
+    // println!("{:?}", sample_meta_factor);
+
     Ok(sample_meta_factor.clone())
 }
 
@@ -511,35 +539,45 @@ fn get_input_spec(cube_query: CubeQuery) -> Result<CrosstabSpec, Box<dyn Error>>
         .and_then(|operator_spec| operator_spec.input_specs.first())
         .and_then(|input_spec| input_spec.object.clone());
 
-    if TercenArgs::try_parse().is_ok() {
-        let input_spec_object = input_spec_object
-            .ok_or_else(|| TercenError::new("Operator specification is required."))?;
-        let input_spec = match input_spec_object {
-            Object::Crosstabspec(input_spec) => Ok(input_spec),
-            Object::Operatorinputspec(_) => {
-                Err(TercenError::new("Operator specification is required."))
-            }
-        }?;
-        Ok(input_spec.clone())
-    } else {
-        Ok(CrosstabSpec {
-            meta_factors: vec![EMetaFactor {
-                object: Option::from(e_meta_factor::Object::Metafactor(MetaFactor {
-                    name: "sample".to_string(),
-                    r#type: "".to_string(),
-                    description: "".to_string(),
-                    ontology_mapping: "sample".to_string(),
-                    crosstab_mapping: "column".to_string(),
-                    cardinality: "".to_string(),
-                    factors: vec![Factor {
-                        name: "filename".to_string(),
-                        r#type: "string".to_string(),
-                    }],
-                })),
-            }],
-            axis: vec![],
-        })
-    }
+    let input_spec_object = input_spec_object
+        .ok_or_else(|| TercenError::new("Operator specification is required."))?;
+    let input_spec = match input_spec_object {
+        e_operator_input_spec::Object::Crosstabspec(input_spec) => Ok(input_spec),
+        e_operator_input_spec::Object::Operatorinputspec(_) => {
+            Err(TercenError::new("Operator specification is required."))
+        }
+    }?;
+    Ok(input_spec.clone())
+
+    // if TercenArgs::try_parse().is_ok() {
+    //     let input_spec_object = input_spec_object
+    //         .ok_or_else(|| TercenError::new("Operator specification is required."))?;
+    //     let input_spec = match input_spec_object {
+    //         Object::Crosstabspec(input_spec) => Ok(input_spec),
+    //         Object::Operatorinputspec(_) => {
+    //             Err(TercenError::new("Operator specification is required."))
+    //         }
+    //     }?;
+    //     Ok(input_spec.clone())
+    // } else {
+    //     Ok(CrosstabSpec {
+    //         meta_factors: vec![EMetaFactor {
+    //             object: Option::from(e_meta_factor::Object::Metafactor(MetaFactor {
+    //                 name: "sample".to_string(),
+    //                 r#type: "".to_string(),
+    //                 description: "".to_string(),
+    //                 ontology_mapping: "sample".to_string(),
+    //                 crosstab_mapping: "column".to_string(),
+    //                 cardinality: "".to_string(),
+    //                 factors: vec![Factor {
+    //                     name: "filename".to_string(),
+    //                     r#type: "string".to_string(),
+    //                 }],
+    //             })),
+    //         }],
+    //         axis: vec![],
+    //     })
+    // }
 }
 fn exec_cube_query(cube_query: &CubeQuery, qt_df: DataFrame, population_level: i32, pop_count_previous: &mut HashMap<(i32, i32), f64>) -> Result<(), Box<dyn Error>> {
     let axis_query = cube_query
@@ -570,7 +608,12 @@ fn exec_cube_query(cube_query: &CubeQuery, qt_df: DataFrame, population_level: i
             .map(|factor| !factor.name.is_empty())
             .ok_or_else(|| TercenError::new("y_axis is required"))?;
 
-        if has_x_axis && has_y_axis {
+        let is_histo =
+            axis_query.preprocessors.iter()
+                .any(|p| p.operator_ref.as_ref()
+                    .map_or(false, |v| v.name == "histogram"));
+
+        if has_x_axis && has_y_axis && is_histo {
             let histogram_count = qt_df.column(".histogram_count")?.f64()?
                 .into_no_null_iter()
                 .fold(0.0, |sum, value| sum + value);
@@ -597,7 +640,7 @@ fn draw_cube_query(
     shapes_by_index: &HashMap<i32, Shape>,
     population_level: i32,
     pop_count_previous: &HashMap<(i32, i32), f64>,
-) -> Result<(), Box<dyn Error>> 
+) -> Result<(), Box<dyn Error>>
 {
     let axis_query = cube_query
         .axis_queries
@@ -613,12 +656,12 @@ fn draw_cube_query(
 
     // println!("ci -- {:?}", &ci);
     // println!("ci_global -- {:?}", &ci_global);
-    
+
     // println!("global_column_df -- {:?}", global_column_df);
     // println!("ci_df -- {:?}", &ci_df);
     // println!("shape_join_df -- {:?}", shape_join_df);
     // println!("shapes_by_index -- {:?}", shapes_by_index);
-    
+
     // println!("qt_df -- {:?}", &qt_df);
 
 
@@ -702,7 +745,29 @@ impl AxisQueryWrapper {
             shapes,
         }
     }
- 
+
+    fn is_histo(&self) -> Result<bool, Box<dyn Error>> {
+        let flag = self.axis_query.preprocessors.iter()
+            .any(|p| p.operator_ref.as_ref()
+                .map_or(false, |v| v.name == "histogram"));
+
+        // let flag = self.axis_query.preprocessors.iter()
+        //     .any(|p| p.r#type.eq("histogram"));
+        Ok(flag)
+    }
+
+    fn is_density_plot(&self) -> Result<bool, Box<dyn Error>> {
+        Ok(self.is_histo()? && self.has_x_axis()? && self.has_y_axis()?)
+    }
+
+    fn is_2d(&self) -> Result<bool, Box<dyn Error>> {
+        Ok(self.has_x_axis()? && self.has_y_axis()?)
+    }
+
+    fn is_histogram_plot(&self) -> Result<bool, Box<dyn Error>> {
+        Ok(self.is_histo()? && !self.is_2d()?)
+    }
+
     fn has_x_axis(&self) -> Result<bool, Box<dyn Error>> {
         let flag = self.axis_query
             .x_axis
@@ -756,9 +821,17 @@ impl AxisQueryWrapper {
 
         Ok(y_axis_factor)
     }
- 
+
     fn column_f64(&self, name: &str) -> PolarsResult<&Float64Chunked> {
         self.qt_df.column(name)?.f64()
+    }
+
+    fn column_i32(&self, name: &str) -> PolarsResult<&Int32Chunked> {
+        self.qt_df.column(name)?.i32()
+    }
+
+    fn has_color_levels(&self) -> bool {
+        self.qt_df.get_column_names().contains(&".colorLevels")
     }
 
     fn column_range_f64(&self, name: &str) -> Result<Range<f64>, Box<dyn Error>> {
@@ -776,8 +849,6 @@ impl AxisQueryWrapper {
     }
 
     fn total_pop(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
-        
-
         let tt = pop_count_previous
             .get(&(self.current_ci, 0))
             .map(|v| *v);
@@ -793,8 +864,6 @@ impl AxisQueryWrapper {
     }
 
     fn histogram_count_with(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
-      
-
         let tt = pop_count_previous
             .get(&(self.current_ci, self.population_level))
             .map(|v| *v);
@@ -818,7 +887,7 @@ impl AxisQueryWrapper {
 
 fn create_palette_from_df(
     axis_query: &CubeAxisQuery,
-    qt_df: &DataFrame) -> Result<JetPalette, Box<dyn Error>> 
+    qt_df: &DataFrame) -> Result<JetPalette, Box<dyn Error>>
 {
     let has_x_axis = axis_query
         .x_axis
@@ -832,17 +901,28 @@ fn create_palette_from_df(
         .map(|factor| !factor.name.is_empty())
         .ok_or_else(|| TercenError::new("y_axis is required"))?;
 
+    let is_histo =
+        axis_query.preprocessors.iter()
+            .any(|p| p.operator_ref.as_ref()
+                .map_or(false, |v| v.name == "histogram"));
+    if is_histo {
+        if has_x_axis && has_y_axis {
+            let hist_count = qt_df
+                .column(".histogram_count")?
+                .f64()?
+                .iter()
+                .collect::<Option<Vec<f64>>>()
+                .ok_or_else(|| TercenError::new("failed to get histogram_count."))?;
 
-    if has_x_axis && has_y_axis {
-        let hist_count = qt_df
-            .column(".histogram_count")?
-            .f64()?
-            .iter()
-            .collect::<Option<Vec<f64>>>()
-            .ok_or_else(|| TercenError::new("failed to get histogram_count."))?;
-
-        let palette = create_palette(hist_count);
-        Ok(palette)
+            let palette = create_palette(hist_count);
+            Ok(palette)
+        } else {
+            let palette = JetPalette {
+                min: 0.0,
+                max: 1.0,
+            };
+            Ok(palette)
+        }
     } else {
         let palette = JetPalette {
             min: 0.0,
@@ -864,7 +944,7 @@ async fn create_col_and_qt_dataframe(
 
 async fn create_qt_df(
     tercen_ctx: &TercenContext,
-    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>> 
+    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>>
 {
     let axis_query = cube_query
         .axis_queries
@@ -883,24 +963,74 @@ async fn create_qt_df(
         .map(|factor| !factor.name.is_empty())
         .ok_or_else(|| TercenError::new("y_axis is required"))?;
 
-    let columns = if has_x_axis && has_y_axis {
-        vec![
-            ".histogram_count".to_string(),
-            ".y_bin_size".to_string(),
-            ".x_bin_size".to_string(),
-            ".y".to_string(),
-            ".x".to_string(),
-            ".ci".to_string(),
-        ]
+    let is_histo =
+        axis_query.preprocessors.iter()
+            .any(|p| p.operator_ref.as_ref()
+                .map_or(false, |v| v.name == "histogram"));
+
+    let mut columns = if is_histo {
+        if has_x_axis && has_y_axis {
+            vec![
+                ".histogram_count".to_string(),
+                ".y_bin_size".to_string(),
+                ".x_bin_size".to_string(),
+                ".y".to_string(),
+                ".x".to_string(),
+                ".ci".to_string(),
+            ]
+        } else {
+            vec![
+                ".y".to_string(),
+                ".x".to_string(),
+                ".ci".to_string(),
+            ]
+        }
     } else {
-        vec![
-            // ".x_bin_size".to_string(),
-            ".y".to_string(),
-            ".x".to_string(),
-            ".ci".to_string(),
-        ]
+        if has_x_axis && has_y_axis {
+            vec![
+                ".y".to_string(),
+                ".x".to_string(),
+                ".ci".to_string(),
+            ]
+        } else {
+            if has_x_axis {
+                vec![
+                    ".x".to_string(),
+                    ".ci".to_string(),
+                ]
+            } else {
+                vec![
+                    ".y".to_string(),
+                    ".ci".to_string(),
+                ]
+            }
+        }
     };
 
+    // let columns = if has_x_axis && has_y_axis {
+    //     vec![
+    //         ".histogram_count".to_string(),
+    //         ".y_bin_size".to_string(),
+    //         ".x_bin_size".to_string(),
+    //         ".y".to_string(),
+    //         ".x".to_string(),
+    //         ".ci".to_string(),
+    //     ]
+    // } else {
+    //     vec![
+    //         // ".x_bin_size".to_string(),
+    //         ".y".to_string(),
+    //         ".x".to_string(),
+    //         ".ci".to_string(),
+    //     ]
+    // };
+
+    let schema = tercen_ctx.get_schema(&cube_query.qt_hash).await?;
+
+    if schema.has_column(".colorLevels")? {
+        columns.push(".colorLevels".to_string())
+    }
+    
     let qt_df = tercen_ctx
         .select_data_frame_from_id(&cube_query.qt_hash, &columns)
         .await?;
@@ -913,7 +1043,7 @@ async fn create_col_df(
     tercen_ctx: &TercenContext,
     sample_meta_factor: &MetaFactor,
     global_column_df: &DataFrame,
-    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>> 
+    cube_query: &CubeQuery) -> Result<DataFrame, Box<dyn Error>>
 {
     let sample_factor_names = sample_meta_factor
         .factors
@@ -957,14 +1087,17 @@ fn create_palette(hist_count: Vec<f64>) -> JetPalette {
 fn draw_sample(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
-    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> 
+    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>>
 {
-    if axis_query.has_x_axis()? && axis_query.has_y_axis()? {
-        // draw_sample_density(axis_query, pop_count_previous, drawing_area)
+    // println!("draw_sample -- {:?}", &axis_query.axis_query);
+    if axis_query.is_density_plot()? {
         draw_sample_density_ticks(axis_query, pop_count_previous, drawing_area)
-    } else {
-        // draw_sample_histogram(axis_query, pop_count_previous, drawing_area)
+    } else if axis_query.is_histogram_plot()? {
         draw_sample_histogram_ticks(axis_query, pop_count_previous, drawing_area)
+    } else if axis_query.is_2d()? {
+        draw_sample_2d_ticks(axis_query, pop_count_previous, drawing_area)
+    } else {
+        Err(TercenError::new("draw_sample -- not impl"))?
     }
 }
 
@@ -972,7 +1105,7 @@ fn draw_sample_density(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
     drawing_area: &DrawingArea<BitMapBackend, Shift>,
-) -> Result<(), Box<dyn Error>> 
+) -> Result<(), Box<dyn Error>>
 {
     let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
     let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
@@ -1072,7 +1205,7 @@ fn draw_sample_density(
     Ok(())
 }
 
-fn draw_sample_density_ticks(
+fn draw_sample_2d_ticks(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
     drawing_area: &DrawingArea<BitMapBackend, Shift>,
@@ -1084,18 +1217,17 @@ fn draw_sample_density_ticks(
 
     let x_axis_factor = axis_query.x_axis_factor()?;
     let y_axis_factor = axis_query.y_axis_factor()?;
- 
+
     let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
     let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
 
     let x_is_log = PreProcess::is_log_pre_processors(&axis_query.x_pre_processors()?);
     let y_is_log = PreProcess::is_log_pre_processors(&axis_query.y_pre_processors()?);
-    let x_precision = if x_is_log {0} else {1};
-    let y_precision = if y_is_log {0} else {1};
+    let x_precision = if x_is_log { 0 } else { 1 };
+    let y_precision = if y_is_log { 0 } else { 1 };
     let primary_x_coord = PreProcessorsRangeTicks::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
     let primary_y_coord = PreProcessorsRangeTicks::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
 
-    
 
     // 1000000.to_formatted_string(&Locale::en);
 
@@ -1136,7 +1268,113 @@ fn draw_sample_density_ticks(
 
     let primary_values = vec![(primary_x_coord.range.start.into(), primary_y_coord.range.start.into()),
                               (primary_x_coord.range.end.into(), primary_y_coord.range.end.into())];
-    
+
+    chart_builder.draw_series(LineSeries::new(primary_values, &primary_color))?;
+
+    let yy = axis_query.column_f64(".y")?;
+    let xx = axis_query.column_f64(".x")?;
+
+    let point_size = (axis_query.axis_query.point_size / 2).min(1);
+
+
+    let color_levels = if axis_query.has_color_levels() {
+        axis_query.column_i32(".colorLevels")?
+            .to_vec()
+            .iter()
+            .map(|op| op.unwrap_or(1))
+            .collect::<Vec<_>>()
+    } else {
+        vec![0; yy.len()]
+    };
+
+    let min_level = color_levels.iter().min().unwrap_or(&0).to_f64().unwrap_or(0.0);
+    let max_level = color_levels.iter().max().unwrap_or(&1).to_f64().unwrap_or(1.0)*1.2;
+
+
+    let palette = crate::client::palette::JetPalette::new(min_level, max_level);
+
+    let point_series = xx
+        .into_no_null_iter()
+        .zip(yy.into_no_null_iter())
+        .zip(color_levels)
+        .map(|((x, y), color_level)| {
+            Circle::new((x, y), point_size,
+                        palette.get_color_rgb(color_level.to_f64().unwrap()).to_plotters().filled(),
+            )
+        });
+
+
+    chart_builder.draw_secondary_series(point_series)?;
+
+    draw_shapes_ticks(axis_query, &mut chart_builder)?;
+
+    Ok(())
+}
+
+fn draw_sample_density_ticks(
+    axis_query: AxisQueryWrapper,
+    pop_count_previous: &HashMap<(i32, i32), f64>,
+    drawing_area: &DrawingArea<BitMapBackend, Shift>,
+) -> Result<(), Box<dyn Error>>
+{
+    let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
+    let secondary_color = TRANSPARENT; //RGBAColor(0, 0, 255, 0.0);
+
+
+    let x_axis_factor = axis_query.x_axis_factor()?;
+    let y_axis_factor = axis_query.y_axis_factor()?;
+
+    let x_range = axis_query.column_range_f64(".x")?; //      x_min..x_max;
+    let y_range = axis_query.column_range_f64(".y")?; //y_min..y_max;
+
+    let x_is_log = PreProcess::is_log_pre_processors(&axis_query.x_pre_processors()?);
+    let y_is_log = PreProcess::is_log_pre_processors(&axis_query.y_pre_processors()?);
+    let x_precision = if x_is_log { 0 } else { 1 };
+    let y_precision = if y_is_log { 0 } else { 1 };
+    let primary_x_coord = PreProcessorsRangeTicks::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
+    let primary_y_coord = PreProcessorsRangeTicks::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
+
+
+    // 1000000.to_formatted_string(&Locale::en);
+
+    let total_pop = axis_query.total_pop(pop_count_previous)?;
+    let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
+    let population_count = axis_query.population_count(pop_count_previous);
+
+    let caption = get_population_caption(&axis_query, total_pop, histogram_count, population_count);
+
+    let caption_style = TextStyle::from((FONT, 13).into_font()).pos(Pos::new(HPos::Right, VPos::Top));
+
+    let mut chart_builder = ChartBuilder::on(drawing_area)
+        .caption(caption, caption_style)
+        .margin(5)
+        .margin_bottom(20)
+        .x_label_area_size(40)
+        .y_label_area_size(50)
+        .build_cartesian_2d(primary_x_coord.clone(), primary_y_coord.clone())?
+        .set_secondary_coord(x_range, y_range);
+
+    chart_builder.configure_mesh()
+        .x_desc(&x_axis_factor.name)
+        .y_desc(&y_axis_factor.name)
+        .x_labels(5)
+        .y_labels(7)
+        .disable_mesh()
+        .x_label_formatter(&|v| v.format(x_precision))
+        .y_label_formatter(&|v| v.format(y_precision))
+        .draw()?;
+
+
+    chart_builder
+        .configure_secondary_axes()
+        .axis_style(secondary_color.clone())
+        .label_style((FONT, 20).into_font().color(&secondary_color))
+        .draw()?;
+
+
+    let primary_values = vec![(primary_x_coord.range.start.into(), primary_y_coord.range.start.into()),
+                              (primary_x_coord.range.end.into(), primary_y_coord.range.end.into())];
+
     chart_builder.draw_series(LineSeries::new(primary_values, &primary_color))?;
 
     let yy = axis_query.column_f64(".y")?;
@@ -1195,7 +1433,7 @@ fn get_population_caption(axis_query: &AxisQueryWrapper, total_pop: f64, histogr
 fn draw_sample_histogram(
     axis_query: AxisQueryWrapper,
     pop_count_previous: &HashMap<(i32, i32), f64>,
-    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>> 
+    drawing_area: &DrawingArea<BitMapBackend, Shift>) -> Result<(), Box<dyn Error>>
 {
     let color = BLUE; //RGBAColor(0, 0, 0, 1.0);
     let primary_color = TRANSPARENT; //RGBAColor(0, 0, 0, 0.0);
@@ -1292,12 +1530,12 @@ fn draw_sample_histogram_ticks(
 
     let x_is_log = PreProcess::is_log_pre_processors(&axis_query.x_pre_processors()?);
     let y_is_log = PreProcess::is_log_pre_processors(&axis_query.y_pre_processors()?);
-    let x_precision = if x_is_log {0} else {1};
-    let y_precision = if y_is_log {0} else {1};
-    
+    let x_precision = if x_is_log { 0 } else { 1 };
+    let y_precision = if y_is_log { 0 } else { 1 };
+
     let primary_x_coord = PreProcessorsRangeTicks::from_range(axis_query.x_pre_processors()?, x_range.clone())?;
     let primary_y_coord = PreProcessorsRangeTicks::from_range(axis_query.y_pre_processors()?, y_range.clone())?;
- 
+
     let total_pop = axis_query.total_pop(pop_count_previous)?;
     let histogram_count = axis_query.histogram_count_with(pop_count_previous)?;
     let population_count = axis_query.population_count(pop_count_previous);
@@ -1315,8 +1553,7 @@ fn draw_sample_histogram_ticks(
 
     // let text_style = ("sans-serif", 20).with_color(RED).into_text_style(drawing_area) .transform(FontTransform::Rotate90);
 
-    
-    
+
     chart_builder.configure_mesh()
         .x_desc(&x_axis_factor.name)
         .y_desc("count")
@@ -1330,18 +1567,16 @@ fn draw_sample_histogram_ticks(
 
     let primary_values = vec![(primary_x_coord.range.start.into(), primary_y_coord.range.start.into()),
                               (primary_x_coord.range.end.into(), primary_y_coord.range.end.into())];
-    
+
     chart_builder.draw_series(LineSeries::new(primary_values.clone(), &primary_color))?;
-  
+
 
     chart_builder
         .configure_secondary_axes()
         .axis_style(secondary_color.clone())
         .label_style((FONT, 20).into_font().color(&secondary_color))
         .draw()?;
- 
 
-    
 
     let yy = axis_query.column_f64(".y")?;
     let xx = axis_query.column_f64(".x")?;
@@ -1361,7 +1596,7 @@ fn draw_sample_histogram_ticks(
 
 fn draw_shapes(axis_query: AxisQueryWrapper,
                cc: &mut ChartContext<BitMapBackend, Cartesian2d<PreProcessorsCoord, PreProcessorsCoord>>)
-               -> Result<(), Box<dyn Error>> 
+               -> Result<(), Box<dyn Error>>
 {
     // let shapes = axis_query.encode_shapes()?;
     //we draw shapes on primary axis, we don't need to encode
@@ -1486,8 +1721,8 @@ fn draw_shapes(axis_query: AxisQueryWrapper,
 }
 
 fn draw_shapes_ticks(axis_query: AxisQueryWrapper,
-               cc: &mut ChartContext<BitMapBackend, Cartesian2d<PreProcessorsCoordTicks, PreProcessorsCoordTicks>>)
-               -> Result<(), Box<dyn Error>>
+                     cc: &mut ChartContext<BitMapBackend, Cartesian2d<PreProcessorsCoordTicks, PreProcessorsCoordTicks>>)
+                     -> Result<(), Box<dyn Error>>
 {
     // let shapes = axis_query.encode_shapes()?;
     //we draw shapes on primary axis, we don't need to encode
