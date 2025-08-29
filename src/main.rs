@@ -242,14 +242,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let data_frames_by_ci = data_frame
                 .partition_by_stable([".ci"], true)?;
             for data_frame_by_ci in data_frames_by_ci.into_iter() {
-                let current_ci: i32 = data_frame_by_ci
-                    .column(".ci")?
+                // let current_ci: i32 = data_frame_by_ci
+                //     .column(".ci")?
+                //     .i32()?
+                //     .into_no_null_iter()
+                //     .next()
+                //     .ok_or_else(|| TercenError::new("failed to get .ci"))?;
+
+                let current_ci_global: i32 = data_frame_by_ci
+                    .column(".ci.global")?
                     .i32()?
                     .into_no_null_iter()
                     .next()
-                    .ok_or_else(|| TercenError::new("failed to get .ci"))?;
+                    .ok_or_else(|| TercenError::new("failed to get .ci.global"))?;
+                
+                
+                // ci.global must be used 
 
-                let old_histogram_count = pop_count_previous.get(&(current_ci, population_level))
+                let old_histogram_count = pop_count_previous.get(&(current_ci_global, population_level))
                     .map(|c| *c)
                     .unwrap_or(0.0);
 
@@ -272,7 +282,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                 // println!("histogram_count {} -- (current_ci, population_level) {:?}", histogram_count, (current_ci, population_level));
 
-                pop_count_previous.insert((current_ci, population_level), histogram_count);
+                pop_count_previous.insert((current_ci_global, population_level), histogram_count);
             }
         }
     }
@@ -709,6 +719,7 @@ fn draw_cube_query(
         let axis_query = AxisQueryWrapper::new(
             population_level,
             current_ci,
+            *ci_global,
             axis_query.clone(),
             palette.clone(),
             qt_df,
@@ -723,6 +734,7 @@ fn draw_cube_query(
 struct AxisQueryWrapper {
     population_level: i32,
     current_ci: i32,
+    current_global_ci: i32,
     axis_query: CubeAxisQuery,
     palette: JetPalette,
     qt_df: DataFrame,
@@ -732,6 +744,7 @@ struct AxisQueryWrapper {
 impl AxisQueryWrapper {
     fn new(population_level: i32,
            current_ci: i32,
+           current_global_ci: i32,
            axis_query: CubeAxisQuery,
            palette: JetPalette,
            qt_df: DataFrame,
@@ -739,6 +752,7 @@ impl AxisQueryWrapper {
         AxisQueryWrapper {
             population_level,
             current_ci,
+            current_global_ci,
             axis_query,
             palette,
             qt_df,
@@ -850,7 +864,7 @@ impl AxisQueryWrapper {
 
     fn total_pop(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
         let tt = pop_count_previous
-            .get(&(self.current_ci, 0))
+            .get(&(self.current_global_ci, 0))
             .map(|v| *v);
 
         match tt {
@@ -865,7 +879,7 @@ impl AxisQueryWrapper {
 
     fn histogram_count_with(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Result<f64, Box<dyn Error>> {
         let tt = pop_count_previous
-            .get(&(self.current_ci, self.population_level))
+            .get(&(self.current_global_ci, self.population_level))
             .map(|v| *v);
 
         match tt {
@@ -880,7 +894,7 @@ impl AxisQueryWrapper {
 
     fn population_count(&self, pop_count_previous: &HashMap<(i32, i32), f64>) -> Option<f64> {
         pop_count_previous
-            .get(&(self.current_ci, self.population_level + 1))
+            .get(&(self.current_global_ci, self.population_level + 1))
             .map(|v| *v)
     }
 }
