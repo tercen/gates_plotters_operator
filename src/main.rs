@@ -231,6 +231,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let histogram_count_name = if has_x_axis && has_y_axis && is_histo { ".histogram_count" } else { ".y" };
 
+
+        let ci_df = create_col_df(&tercen_ctx, &sample_meta_factor, &global_column_df, cube_query).await?;
+
         let mut stream = tercen_ctx
             .select_stream(&cube_query.qt_hash,
                            &vec![".ci".to_string(),
@@ -242,22 +245,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let data_frames_by_ci = data_frame
                 .partition_by_stable([".ci"], true)?;
             for data_frame_by_ci in data_frames_by_ci.into_iter() {
-                // let current_ci: i32 = data_frame_by_ci
-                //     .column(".ci")?
-                //     .i32()?
-                //     .into_no_null_iter()
-                //     .next()
-                //     .ok_or_else(|| TercenError::new("failed to get .ci"))?;
-
-                let current_ci_global: i32 = data_frame_by_ci
-                    .column(".ci.global")?
+                let current_ci: i32 = data_frame_by_ci
+                    .column(".ci")?
                     .i32()?
                     .into_no_null_iter()
                     .next()
-                    .ok_or_else(|| TercenError::new("failed to get .ci.global"))?;
+                    .ok_or_else(|| TercenError::new("failed to get .ci"))?;
+
+                let (global_ci_index, _) = ci_df
+                    .column(".ci")?
+                    .i32()?
+                    .into_no_null_iter()
+                    .enumerate()
+                    .filter(|(_index, ci)| ci.eq(&current_ci) ).next()
+                    .ok_or_else(|| TercenError::new("failed to find global_ci_index"))?;
+
+                let current_ci_global: i32 = ci_df
+                    .column(".ci.global")?
+                    .i32()?
+                    .get(global_ci_index)
+                    .ok_or_else(|| TercenError::new("failed to find current_ci_global"))?;
                 
-                
-                // ci.global must be used 
+                // ci.global must be used
 
                 let old_histogram_count = pop_count_previous.get(&(current_ci_global, population_level))
                     .map(|c| *c)
@@ -355,6 +364,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .zip(cube_queries.iter())
         .zip(drawing_areas.into_iter()
             .zip(population_levels.into_iter())) {
+      
         let (qt_df, ci_df) = create_col_and_qt_dataframe(
             &tercen_ctx,
             &sample_meta_factor,
@@ -589,56 +599,56 @@ fn get_input_spec(cube_query: CubeQuery) -> Result<CrosstabSpec, Box<dyn Error>>
     //     })
     // }
 }
-fn exec_cube_query(cube_query: &CubeQuery, qt_df: DataFrame, population_level: i32, pop_count_previous: &mut HashMap<(i32, i32), f64>) -> Result<(), Box<dyn Error>> {
-    let axis_query = cube_query
-        .axis_queries
-        .first()
-        .ok_or_else(|| TercenError::new("x and y axis are required."))?;
-
-    let data_frames_by_ci = qt_df.partition_by_stable([".ci"], true)?;
-
-    for qt_df in data_frames_by_ci.into_iter() {
-        let current_ci: i32 = qt_df
-            .column(".ci")?
-            .i32()?
-            .into_no_null_iter()
-            .next()
-            .ok_or_else(|| TercenError::new("failed to get .ci"))?;
-
-        // println!("current_ci -- {:?}", &current_ci);
-        let has_x_axis = axis_query
-            .x_axis
-            .as_ref()
-            .map(|factor| !factor.name.is_empty())
-            .ok_or_else(|| TercenError::new("x_axis is required"))?;
-
-        let has_y_axis = axis_query
-            .y_axis
-            .as_ref()
-            .map(|factor| !factor.name.is_empty())
-            .ok_or_else(|| TercenError::new("y_axis is required"))?;
-
-        let is_histo =
-            axis_query.preprocessors.iter()
-                .any(|p| p.operator_ref.as_ref()
-                    .map_or(false, |v| v.name == "histogram"));
-
-        if has_x_axis && has_y_axis && is_histo {
-            let histogram_count = qt_df.column(".histogram_count")?.f64()?
-                .into_no_null_iter()
-                .fold(0.0, |sum, value| sum + value);
-
-            pop_count_previous.insert((current_ci, population_level), histogram_count);
-        } else {
-            let histogram_count = qt_df.column(".y")?.f64()?
-                .into_no_null_iter()
-                .fold(0.0, |sum, value| sum + value);
-
-            pop_count_previous.insert((current_ci, population_level), histogram_count);
-        }
-    }
-    Ok(())
-}
+// fn exec_cube_query(cube_query: &CubeQuery, qt_df: DataFrame, population_level: i32, pop_count_previous: &mut HashMap<(i32, i32), f64>) -> Result<(), Box<dyn Error>> {
+//     let axis_query = cube_query
+//         .axis_queries
+//         .first()
+//         .ok_or_else(|| TercenError::new("x and y axis are required."))?;
+// 
+//     let data_frames_by_ci = qt_df.partition_by_stable([".ci"], true)?;
+// 
+//     for qt_df in data_frames_by_ci.into_iter() {
+//         let current_ci: i32 = qt_df
+//             .column(".ci")?
+//             .i32()?
+//             .into_no_null_iter()
+//             .next()
+//             .ok_or_else(|| TercenError::new("failed to get .ci"))?;
+// 
+//         // println!("current_ci -- {:?}", &current_ci);
+//         let has_x_axis = axis_query
+//             .x_axis
+//             .as_ref()
+//             .map(|factor| !factor.name.is_empty())
+//             .ok_or_else(|| TercenError::new("x_axis is required"))?;
+// 
+//         let has_y_axis = axis_query
+//             .y_axis
+//             .as_ref()
+//             .map(|factor| !factor.name.is_empty())
+//             .ok_or_else(|| TercenError::new("y_axis is required"))?;
+// 
+//         let is_histo =
+//             axis_query.preprocessors.iter()
+//                 .any(|p| p.operator_ref.as_ref()
+//                     .map_or(false, |v| v.name == "histogram"));
+// 
+//         if has_x_axis && has_y_axis && is_histo {
+//             let histogram_count = qt_df.column(".histogram_count")?.f64()?
+//                 .into_no_null_iter()
+//                 .fold(0.0, |sum, value| sum + value);
+// 
+//             pop_count_previous.insert((current_ci, population_level), histogram_count);
+//         } else {
+//             let histogram_count = qt_df.column(".y")?.f64()?
+//                 .into_no_null_iter()
+//                 .fold(0.0, |sum, value| sum + value);
+// 
+//             pop_count_previous.insert((current_ci, population_level), histogram_count);
+//         }
+//     }
+//     Ok(())
+// }
 fn draw_cube_query(
     global_column_df: &DataFrame,
     drawing_area: &DrawingArea<BitMapBackend, Shift>,
@@ -1427,8 +1437,9 @@ fn draw_sample_density_ticks(
 fn get_population_caption(axis_query: &AxisQueryWrapper, total_pop: f64, histogram_count: f64, population_count: Option<f64>) -> String {
     let caption = match population_count {
         None => {
-            format!("Total: {:.1}% ",
-                    (histogram_count / total_pop) * 100.0)
+            "Total: 0% N: 0".to_string()
+            // format!("Total: {:.1}% N: 0",
+            //         (histogram_count / total_pop) * 100.0)
         }
         Some(population_count) => {
             if axis_query.population_level == 0 {
